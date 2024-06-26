@@ -1,0 +1,590 @@
+{
+    "tags": [
+      {
+        "name": "Contact",
+        "description": "API for contact CRUD operations."
+      }
+    ],
+    "components": {
+      "schemas": {
+        "ContactResponseSchema": {
+          "type": "object",
+          "properties": {
+            "_id": {
+              "type": "string",
+              "example": "666968c3bb67a71a9b27fe57"
+            },
+            "firstName": {
+              "type": "string",
+              "example": "first name"
+            },
+            "lastName": {
+                "type": "string",
+                "example": "last name"
+            },
+            "phoneNumber": {
+              "type": "string",
+              "example": "3409129812"
+            },
+            "countryCode": {
+              "type": "string",
+              "example": "+91"
+            },
+            "status": {
+              "type": "string",
+              "example": ""
+            },
+            "sid": {
+                "type": "string",
+                "example": ""
+              },
+            "isDeleted": {
+              "type": "boolean",
+              "example": false
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2024-06-18T09:22:11.200Z"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2024-06-18T12:23:40.803Z"
+            },
+            "__v": {
+              "type": "number",
+              "example": 0
+            },
+            "userId": {
+                "type": "string",
+                "example": "666968c3bb67a71a9b27fe56"
+              },
+            "createdBy": {
+              "type": "string",
+              "example": "666968c3bb67a71a9b27fe56"
+            },
+            "updatedBy": {
+              "type": "string",
+              "example": "666968c3bb67a71a9b27fe58"
+            }
+          }
+        }
+      }
+    },
+    "paths": {
+      "/contacts": {
+        "post": {
+          "summary": "Add contact of user",
+          "description": "Endpoint to add contact",
+          "tags": ["Contact"],
+          "security": [{ "bearerAuth": [] }],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "phoneNumber": { "type": "string" },
+                    "countryCode": { "type": "string" },
+                    "firstName": { "type": "string" },
+                    "lastName": { "type": "string" }
+                  },
+                  "required": ["phoneNumber", "countryCode", "firstName", "lastName"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Contact added successfully"
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                            "contact": { "$ref": "#/components/schemas/ContactResponseSchema" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/BadRequestSchema"
+                  }
+                }
+              }
+            },
+            "401": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                    }
+                  }
+                }
+            },
+            "404":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "",
+              "content": {
+                "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/ErrorResponseSchema"
+                    }
+                }
+              }
+            }
+          }
+        },
+        "get": {
+            "summary": "Get contact list of user",
+            "description": "Endpoint to get contact list of user",
+            "tags": ["Contact"],
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                {
+                  "name": "firstName",
+                  "in": "query",
+                  "description": "First name of the contact to search",
+                  "schema": {
+                    "type": "string",
+                    "example": "name"
+                  }
+                },
+                {
+                    "name": "lastName",
+                    "in": "query",
+                    "description": "Last name of the contact to search",
+                    "schema": {
+                      "type": "string",
+                      "example": "name"
+                    }
+                },
+                {
+                    "name": "phoneNumber",
+                    "in": "query",
+                    "description": "Phone number of the contact to search",
+                    "schema": {
+                      "type": "string",
+                      "example": "923409890123"
+                    }
+                },
+                {
+                    "name": "countryCode",
+                    "in": "query",
+                    "description": "Country code of the contact to search",
+                    "schema": {
+                      "type": "string",
+                      "example": "+91"
+                    }
+                }
+            ],
+            "responses": {
+              "200": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Contact list fetched succesfully"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                              "contact": { 
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/components/schemas/ContactResponseSchema" } 
+                                },
+                                "totalCount": { "type": "number", "example": 1 },
+                                "pageCount": { "type": "number", "example": 1 },
+                                "pageIndex": { "type": "number", "example": 1 },
+                                "pageSize": { "type": "number", "example": 10 },
+                                "count": { "type": "number", "example": 1 }
+                                
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/BadRequestSchema"
+                    }
+                  }
+                }
+              },
+              "401": {
+                  "description": "",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                      }
+                    }
+                  }
+              },
+              "404":  {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                    }
+                  }
+                }
+              },
+              "500": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/ErrorResponseSchema"
+                      }
+                  }
+                }
+              }
+            }
+        }
+      },
+  
+      "/contacts/{id}": {
+        "put": {
+          "summary": "Edit contact by id",
+          "description": "Endpoint to update contact",
+          "tags": ["Contact"],
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "description": "ID of the contact to be updated",
+              "schema": {
+                "type": "string",
+                "example": "60d0fe4f5311236168a109ca"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "phoneNumber": { "type": "string" },
+                    "countryCode": { "type": "string" },
+                    "firstName": { "type": "string" },
+                    "lastName": { "type": "string" }
+                  },
+                  "required": ["phoneNumber", "countryCode", "firstName", "lastName"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Contact updated successfully"
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                            "contact": { "$ref": "#/components/schemas/ContactResponseSchema" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/BadRequestSchema"
+                  }
+                }
+              }
+            },
+            "401": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                    }
+                  }
+                }
+            },
+            "404":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "",
+              "content": {
+                "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/ErrorResponseSchema"
+                    }
+                }
+              }
+            }
+          }
+        },
+        "get": {
+            "summary": "Get contact by id",
+            "description": "Endpoint to get contact by id",
+            "tags": ["Contact"],
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+              {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "description": "ID of the contact to fetch",
+                "schema": {
+                  "type": "string",
+                  "example": "60d0fe4f5311236168a109ca"
+                }
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Contact detail fetched successfully"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                              "contact": { "$ref": "#/components/schemas/ContactResponseSchema" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/BadRequestSchema"
+                    }
+                  }
+                }
+              },
+              "401": {
+                  "description": "",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                      }
+                    }
+                  }
+              },
+              "404":  {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                    }
+                  }
+                }
+              },
+              "500": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/ErrorResponseSchema"
+                      }
+                  }
+                }
+              }
+            }
+        },
+        "delete": {
+            "summary": "Delete contact by id",
+            "description": "Endpoint to delete contact by id",
+            "tags": ["Contact"],
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+              {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "description": "ID of the contact to delete",
+                "schema": {
+                  "type": "string",
+                  "example": "60d0fe4f5311236168a109ca"
+                }
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Contact deleted successfully"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                              "contact": { "$ref": "#/components/schemas/ContactResponseSchema" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/BadRequestSchema"
+                    }
+                  }
+                }
+              },
+              "401": {
+                  "description": "",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                      }
+                    }
+                  }
+              },
+              "404":  {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                    }
+                  }
+                }
+              },
+              "500": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/ErrorResponseSchema"
+                      }
+                  }
+                }
+              }
+            }
+        }
+      }
+    }
+}

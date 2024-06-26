@@ -1,0 +1,356 @@
+{
+    "tags": [
+      {
+        "name": "Call",
+        "description": "API for call CRUD operations."
+      }
+    ],
+    "components": {
+      "schemas": {
+        "CallResponseSchema": {
+          "type": "object",
+          "properties": {
+            "_id": {
+              "type": "string",
+              "example": "666968c3bb67a71a9b27fe57"
+            },
+            "firstName": {
+              "type": "string",
+              "example": "first name"
+            },
+            "lastName": {
+                "type": "string",
+                "example": "last name"
+            },
+            "phoneNumber": {
+              "type": "string",
+              "example": "3409129812"
+            },
+            "countryCode": {
+              "type": "string",
+              "example": "+91"
+            },
+            "status": {
+              "type": "string",
+              "example": ""
+            },
+            "sid": {
+                "type": "string",
+                "example": ""
+              },
+            "isDeleted": {
+              "type": "boolean",
+              "example": false
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2024-06-18T09:22:11.200Z"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2024-06-18T12:23:40.803Z"
+            },
+            "__v": {
+              "type": "number",
+              "example": 0
+            },
+            "userId": {
+                "type": "string",
+                "example": "666968c3bb67a71a9b27fe56"
+              },
+            "createdBy": {
+              "type": "string",
+              "example": "666968c3bb67a71a9b27fe56"
+            },
+            "updatedBy": {
+              "type": "string",
+              "example": "666968c3bb67a71a9b27fe58"
+            }
+          }
+        }
+      }
+    },
+    "paths": {
+      "/calls/dial": {
+        "post": {
+          "summary": "Call a number",
+          "description": "Endpoint to call a number",
+          "tags": ["Call"],
+          "security": [{ "bearerAuth": [] }],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "phoneNumber": { "type": "string" },
+                    "countryCode": { "type": "string" }
+                  },
+                  "required": ["phoneNumber", "countryCode"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Called to user"
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/BadRequestSchema"
+                  }
+                }
+              }
+            },
+            "401": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                    }
+                  }
+                }
+            },
+            "404":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "",
+              "content": {
+                "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/ErrorResponseSchema"
+                    }
+                }
+              }
+            }
+          }
+        }
+      },
+  
+      "/calls/update": {
+        "post": {
+            "summary": "Update status of call",
+            "description": "Webhook fn to update call status for internal use",
+            "tags": ["Call"],
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "CallSid": { "type": "string" }
+                    },
+                    "required": ["CallSid"]
+                  }
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Call status updated"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/BadRequestSchema"
+                    }
+                  }
+                }
+              },
+              "401": {
+                  "description": "",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                      }
+                    }
+                  }
+              },
+              "404":  {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                    }
+                  }
+                }
+              },
+              "500": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/ErrorResponseSchema"
+                      }
+                  }
+                }
+              }
+            }
+          }
+      },
+
+      "/calls/log": {
+        "get": {
+            "summary": "Get call logs of user",
+            "description": "Endpoint to get call logs of user",
+            "tags": ["Call"],
+            "security": [{ "bearerAuth": [] }],
+            "responses": {
+              "200": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Contact list fetched succesfully"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                              "_id": { 
+                                 "type": "object",
+                                 "properties": {
+                                    "caller": { "type": "string", "example": "667a62f59088474f9a9324c3" },
+                                    "receiver": { "type": "string", "example": "667a64ef9088474f9a932661" }
+                                 }
+                              },
+                              "calls": { 
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/components/schemas/CallResponseSchema" } 
+                                }  
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/BadRequestSchema"
+                    }
+                  }
+                }
+              },
+              "401": {
+                  "description": "",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                      }
+                    }
+                  }
+              },
+              "404":  {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                    }
+                  }
+                }
+              },
+              "500": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/ErrorResponseSchema"
+                      }
+                  }
+                }
+              }
+            }
+        }
+      }
+    }
+}
