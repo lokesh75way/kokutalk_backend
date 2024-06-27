@@ -113,7 +113,7 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
         twiml: '<Response><Say>Hello!</Say></Response>',
         to: countryCode + phoneNumber,
         from: existingCaller?.countryCode + existingCaller?.phoneNumber,
-        statusCallback: `https://b708-38-137-53-69.ngrok-free.app/api/calls/update`,
+        statusCallback: `${process.env.SERVER_URL}/calls/update`,
         statusCallbackMethod: "POST",
         statusCallbackEvent: ["initiated", "ringing", "answered", "completed"],
     })
@@ -281,7 +281,6 @@ export const getCallRate = async (originNumber: string, destinationNumber: strin
 
 export const getCallLog = async (userId: string) => {
   try {
-    console.log("\n\n user id", userId)
     const callSearch:any = { 
       $and: [
       { 

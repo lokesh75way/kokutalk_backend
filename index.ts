@@ -46,7 +46,7 @@ const initApp = async (): Promise<void> => {
   initPassport();
 
   // set base path to /api
-  app.use("/api", router);
+  app.use("/kokutalk", router);
 
   app.get("/", (req: Request, res: Response) => {
     res.send({ status: "ok" });

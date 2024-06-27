@@ -32,7 +32,7 @@ export const sendSms = async (otp: number, phoneNumber: string, action: string =
 
 export const sendOtp = async (otp: number, phoneNumber: string, action: string = "register") =>  {
   try {
-    // await sendSms(otp, phoneNumber, action);
+    await sendSms(otp, phoneNumber, action);
   } catch (error: any) {
     throw createHttpError(500, { message: "Otp can't be sent by sms to user phone. Please check credential of message service provider and phone number." });
   }
