@@ -39,7 +39,7 @@ router.get(
   catchError,
   expressAsyncHandler(async (req, res) => {
     const userId =  req?.user?._id || "";
-    const response = await getCallLog(userId);
+    const response = await getCallLog(userId, req.query);
     res.send(createResponse(response, "Call logs fetched successfully"));
   })
 )

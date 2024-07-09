@@ -7,10 +7,14 @@ import mongoose from "mongoose";
 import {
   sendOtp,
   checkOtp,
-  updateName
+  updateName,
+  addNumber,
+  getNumber
 } from "../helper/validations/user";
 import { addContact, updateContact, getContact } from "../helper/validations/contact";
 import { makeCall, updateCall } from "../helper/validations/call";
+import { getNotification } from "../helper/validations/notification";
+import { getCredit } from "../helper/validations/credit";
 
 export const validate = (validationName: string): any[] => {
   switch (validationName) {
@@ -22,6 +26,12 @@ export const validate = (validationName: string): any[] => {
     }
     case "user:update-name" : {
       return [updateName] ;
+    }
+    case "user:add-number" : {
+      return [addNumber] ;
+    }
+    case "user:get-number" : {
+      return [getNumber] ;
     }
     case "contact:add": {
       return [addContact];
@@ -37,6 +47,12 @@ export const validate = (validationName: string): any[] => {
     }
     case "call:update": {
       return [updateCall];
+    }
+    case "notification:get": {
+      return [getNotification];
+    }
+    case "credit:get": {
+      return [getCredit];
     }
     
     default:

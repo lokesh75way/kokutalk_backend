@@ -8,6 +8,7 @@ import { initPassport } from "./app/services/passport-jwt";
 import userRoutes from "./app/routes/user";
 import contactRoutes from "./app/routes/contact";
 import callRoutes from "./app/routes/call";
+import notificationRoutes from "./app/routes/notification";
 import { IUser } from "./app/schema/User";
 import { loadConfig } from "./app/helper/config";
 import swaggerUi from 'swagger-ui-express';
@@ -56,6 +57,7 @@ const initApp = async (): Promise<void> => {
   router.use("/users", userRoutes);
   router.use("/contacts", contactRoutes)
   router.use("/calls", callRoutes);
+  router.use("/notifications", notificationRoutes);
   router.use('/docs', swaggerUi.serve, swaggerUi.setup(mergedSwagger));
 
   // error handler

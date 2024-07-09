@@ -73,7 +73,7 @@ export const getContact = async (userId: string, payload: ContactPayload) => {
 
         const contactSearch:any = { 
             createdBy: userId, isDeleted: false, 
-            $or: [
+            $and: [
             { firstName: { $nin: ["", null ] } },
             { lastName: { $nin: ["", null ] } } 
             ]
@@ -93,10 +93,10 @@ export const getContact = async (userId: string, payload: ContactPayload) => {
         }
 
         const contactCount = await Contact.find(contactSearch).countDocuments();
-        const contact = await Contact.find(contactSearch).sort({ createdAt: -1 }).skip(skipedContact).limit(pageSizeToSearch).lean().exec();
+        const contacts = await Contact.find(contactSearch).sort({ createdAt: -1 }).skip(skipedContact).limit(pageSizeToSearch).lean().exec();
 
-        return { contact, totalCount: contactCount, pageCount: Math.ceil(contactCount/pageSizeToSearch),
-            pageIndex: pageIndexToSearch, pageSize: pageSizeToSearch, count: contact.length
+        return { contacts, totalCount: contactCount, pageCount: Math.ceil(contactCount/pageSizeToSearch),
+            pageIndex: pageIndexToSearch, pageSize: pageSizeToSearch, count: contacts.length
         };
     } catch(error) {
         throw createHttpError(500, { message: "Something went wrong in fetching contact list." });

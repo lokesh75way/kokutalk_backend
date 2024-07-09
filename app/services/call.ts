@@ -10,6 +10,7 @@ import { PricingV2VoiceVoiceNumberOutboundCallPrices } from "twilio/lib/rest/pri
 import CallRate, { DurationUnit } from "../schema/CallRate";
 import { calculatePrice } from "../helper/common";
 import mongoose from "mongoose";
+import { escapeRegex } from "../helper/common";
 
 loadConfig();
 
@@ -20,6 +21,15 @@ const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
 interface CallRatePrice extends PricingV2VoiceVoiceNumberOutboundCallPrices {
   current_price?: string | undefined;
   base_price?: number | undefined;
+}
+
+interface CallLogPayload {
+  firstName?: string | null;
+  lastName?: string | null;
+  phoneNumber?: string | null;
+  countryCode?: string | null;
+  pageIndex?: string | number | null;
+  pageSize?: string | number | null;
 }
 
 
@@ -38,9 +48,15 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
     // if(!userCredit?.expireAt || new Date(userCredit?.expireAt) < new Date(Date.now())) {
     //   throw createHttpError(500, { message: "Your account credit has expired. Please add credit to your account" });
     // }
+
+    const existingNumber = await getNumber(existingCaller?.countryCode || "" + existingCaller?.phoneNumber || "")
     
-    if(!existingCaller?.sid) {
+    if(!existingCaller?._id || !existingNumber?.sid) {
       throw createHttpError(500, { message: "Your contact number doesn't exist or is not verified to make any call. Please add your contact number and verify it" });
+    }
+
+    if(existingNumber?.sid != existingCaller?.sid) {
+      await Contact.findOneAndUpdate({ _id: existingCaller?._id }, { $set: { sid: existingNumber?.sid }}, { new: true});
     }
     
     const providerCallRateDetail = await getCallRate(existingCaller?.countryCode + existingCaller?.phoneNumber, countryCode + phoneNumber);
@@ -279,12 +295,20 @@ export const getCallRate = async (originNumber: string, destinationNumber: strin
   }
 };
 
-export const getCallLog = async (userId: string) => {
+export const getCallLog = async (userId: string, payload: CallLogPayload) => {
   try {
+    const { pageIndex = "", pageSize = "", firstName = "", lastName = "", phoneNumber = "", countryCode = "" } = payload;
+        
+    let pageIndexToSearch = pageIndex && !Number.isNaN(pageIndex) ? parseInt(pageIndex + "") : 1;
+    let pageSizeToSearch = pageSize && !Number.isNaN(pageSize) ? parseInt(pageSize + "") : 10;
+    pageIndexToSearch = pageIndexToSearch > 0 ? pageIndexToSearch : 1;
+    pageSizeToSearch = pageSizeToSearch > 0 ? pageSizeToSearch : 10;
+    const skipedCall = (pageIndexToSearch - 1)*pageIndexToSearch;
+
     const callSearch:any = { 
       $and: [
       { 
-          
+
         $or: [
         { "callerDetail.userId": new mongoose.Types.ObjectId(userId), },
         { "receiverDetail.userId": new mongoose.Types.ObjectId(userId), } 
@@ -300,14 +324,61 @@ export const getCallLog = async (userId: string) => {
       ]
     }
 
+    const searchQuery: any = [];
+
+    if(firstName) {
+
+      searchQuery.push({
+        $or: [
+          { "callerDetail.firstName": new RegExp(escapeRegex(firstName), 'i') },
+          { "receiverDetail.firstName": new RegExp(escapeRegex(firstName), 'i') }
+        ]
+      })
+    }
+    if(lastName) {
+      searchQuery.push({
+        $or: [
+          { "callerDetail.lastName": new RegExp(escapeRegex(lastName), 'i') },
+          { "receiverDetail.lastName": new RegExp(escapeRegex(lastName), 'i') }
+        ]
+      })
+    }
+    if(phoneNumber) {
+      searchQuery.push({
+        $or: [
+          { "callerDetail.phoneNumber": new RegExp(escapeRegex(phoneNumber), 'i') },
+          { "receiverDetail.phoneNumber": new RegExp(escapeRegex(phoneNumber), 'i') }
+        ]
+      })
+    }
+    if(countryCode) {
+      searchQuery.push({
+        $or: [
+          { "callerDetail.phoneNumber": new RegExp(escapeRegex(countryCode), 'i') },
+          { "receiverDetail.phoneNumber": new RegExp(escapeRegex(countryCode), 'i') }
+        ]
+      })
+    }
+
+    if(searchQuery.length) {
+      callSearch["$and"].push({ "$or": searchQuery })
+    }
+
+    const callCount = await Call.find(callSearch).countDocuments();
+
     const calls = await Call.aggregate([
       { $match: callSearch},
+      { $sort: { createdAt: -1 } },
+      { $skip: skipedCall },
+      { $limit: pageSizeToSearch },
       { $group: { _id: { "caller": '$caller', "receiver": "$receiver" }, 
         calls: { $push: "$$ROOT" }
-      }}
+      }},
     ]).allowDiskUse(true).exec();
 
-    return calls;
+    return { log: calls, totalCount: callCount, pageCount: Math.ceil(callCount/pageSizeToSearch),
+            pageIndex: pageIndexToSearch, pageSize: pageSizeToSearch, count: calls.length
+    };
   } catch(error) {
     throw createHttpError(500, { message: "Something went wrong in fetching call logs." });
   }
