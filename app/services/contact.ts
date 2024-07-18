@@ -75,7 +75,7 @@ export const getContact = async (userId: string, payload: ContactPayload) => {
             createdBy: userId, isDeleted: false, 
             $and: [
             { firstName: { $nin: ["", null ] } },
-            { lastName: { $nin: ["", null ] } } 
+            // { lastName: { $nin: ["", null ] } } 
             ]
         }
 
