@@ -49,7 +49,8 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
     //   throw createHttpError(500, { message: "Your account credit has expired. Please add credit to your account" });
     // }
 
-    const existingNumber = await getNumber(existingCaller?.countryCode || "" + existingCaller?.phoneNumber || "")
+    const callerNumber = (existingCaller?.countryCode || "") + (existingCaller?.phoneNumber || "")
+    const existingNumber = await getNumber(callerNumber)
     
     if(!existingCaller?._id || !existingNumber?.sid) {
       throw createHttpError(500, { message: "Your contact number doesn't exist or is not verified to make any call. Please add your contact number and verify it" });
@@ -241,7 +242,6 @@ export const addNumber = async (phoneNumber: string): Promise<any> => {
 // Helper fn to handle webhook request providing result of verification process of number 
 export const validateNumber = async (payload: any): Promise<any> => {
   try {
-    console.log("\n\n request returned", payload);
     return;
 
   } catch (error: any) {
