@@ -33,7 +33,21 @@ const router = express.Router();
 
 const mergedSwagger = mergeSwaggerFiles();
 
-app.use(cors()) ;
+app.set('trust proxy', 1)
+const allowedOrigins: string[] = ["https://api.latecahub.com/kokutalk", "http://localhost:5000", "http://localhost:5173"];
+
+app.use(cors({
+  maxAge: 84600,
+  origin: (origin, next) => {
+    if (!origin) return next(null, true);
+
+    if (allowedOrigins.filter(curr => origin.includes(curr))?.length) {
+      next(null, true);
+    } else {
+      next(new Error('Not allowed by CORS'));
+    }
+  }
+}));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.json());

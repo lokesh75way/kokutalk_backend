@@ -23,7 +23,7 @@ export function mergeSwaggerFiles() {
         },
         servers: [
             {
-                url: `https://ecb0-38-183-77-37.ngrok-free.app/api`,
+                url: `https://5942-223-178-210-31.ngrok-free.app/api`,
                 description: 'Ngrok server'
             },
             {
@@ -38,7 +38,9 @@ export function mergeSwaggerFiles() {
     };
 
     swaggerFiles.forEach((file) => {
-        const filePath = path.join(__dirname, 'swagger', file);
+        const env  = process.env.NODE_ENV || "development";
+        const documentPath = env == "local" ? __dirname : __dirname + "../../"
+        const filePath = path.join(documentPath, 'swagger', file);
         const swagger = readJSONFile(filePath) 
 
         if (swagger) {
