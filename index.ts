@@ -34,7 +34,7 @@ const router = express.Router();
 const mergedSwagger = mergeSwaggerFiles();
 
 app.set('trust proxy', 1)
-const allowedOrigins: string[] = ["https://api.latecahub.com/kokutalk", "http://localhost:5000", "http://localhost:5173"];
+const allowedOrigins: string[] = ["https://api.latecahub.com/kokutalk"];
 
 app.use(cors({
   maxAge: 84600,
