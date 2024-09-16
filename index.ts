@@ -41,13 +41,15 @@ const allowedOrigins: string[] = ["https://api.latecahub.com/kokutalk"];
 app.use(cors({
   maxAge: 84600,
   origin: (origin, next) => {
-    if (!origin) return next(null, true);
+    console.log("========Req origin", origin)
+    return next(null, true);
+    // if (!origin) return next(null, true);
 
-    if (allowedOrigins.filter(curr => origin.includes(curr))?.length) {
-      next(null, true);
-    } else {
-      next(new Error('Not allowed by CORS'));
-    }
+    // if (allowedOrigins.filter(curr => origin.includes(curr))?.length) {
+    //   next(null, true);
+    // } else {
+    //   next(new Error('Not allowed by CORS'));
+    // }
   }
 }));
 app.use(bodyParser.urlencoded({ extended: true }));
