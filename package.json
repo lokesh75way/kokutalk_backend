@@ -74,6 +74,7 @@
     "swagger-ui": "^5.17.14",
     "swagger-ui-dist": "^5.17.14",
     "swagger-ui-express": "^5.0.1",
-    "twilio": "^5.2.0"
+    "twilio": "^5.2.0",
+    "ws": "^8.18.0"
   }
 }
