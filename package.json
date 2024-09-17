@@ -7,7 +7,7 @@
     "dev": "npm run build && NODE_ENV=development node ./dist/index.js",
     "prod": "npm run build && NODE_ENV=production node ./dist/index.js",
     "swagger-document": "NODE_ENV=local ts-node ./swagger.ts",
-    "build": "npm tsc",
+    "build": "npx tsc",
     "lint": "eslint . --ext .ts,.js --max-warnings=0",
     "lint:fix": "eslint --fix",
     "format": "prettier . -w",
