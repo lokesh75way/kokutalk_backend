@@ -17,6 +17,9 @@ loadConfig();
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
+const apiKeySid = process.env.TWILIO_API_KEY_SID;
+const apiKeySecret = process.env.TWILIO_API_KEY_SECRET;
+const serviceSid = process.env.TWILIO_APP_SERVICE_SID;
 
 interface CallRatePrice extends PricingV2VoiceVoiceNumberOutboundCallPrices {
   current_price?: string | undefined;
@@ -35,13 +38,21 @@ interface CallLogPayload {
 
 export const makeCall = async (phoneNumber: string, countryCode: string, user: IUser): Promise<any> => {
   try {
-    if(!accountSid || !authToken || !countryCode || !phoneNumber) {
-      throw createHttpError(500, { message: "Call can't be made. Please check credential of message service provider and phone number." });
+    console.log("\n\n country code", { phoneNumber, countryCode })
+    if(!accountSid || !authToken || !countryCode || !phoneNumber || !twilioPhoneNumber) {
+      throw createHttpError(500, { message: "Call can't be made. Please check credential of service provider and phone number." });
     }
+    const existingTwilioNumber = await getNumber(twilioPhoneNumber);
+
+    console.log("\n\n existingTwilio num", existingTwilioNumber)
+
+    // if(!existingTwilioNumber?.sid) {
+    //   throw createHttpError(500, { message: "Call can't be made. Please check credential of service provider and twilio phone number." });
+    // }
 
     const client = twilio(accountSid, authToken);
 
-    const existingCaller = await Contact.findOne({ _id: user?.contact, isDeleted: false}).lean();
+    let existingCaller = await Contact.findOne({ _id: user?.contact, isDeleted: false}).lean();
 
     const userCredit = await Credit.findOne( { _id: user?.credit, isDeleted: false }).lean();
     
@@ -52,12 +63,20 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
     const callerNumber = (existingCaller?.countryCode || "") + (existingCaller?.phoneNumber || "")
     const existingNumber = await getNumber(callerNumber)
     
-    if(!existingCaller?._id || !existingNumber?.sid) {
-      throw createHttpError(500, { message: "Your contact number doesn't exist or is not verified to make any call. Please add your contact number and verify it" });
-    }
 
     if(existingNumber?.sid != existingCaller?.sid) {
-      await Contact.findOneAndUpdate({ _id: existingCaller?._id }, { $set: { sid: existingNumber?.sid }}, { new: true});
+      existingCaller = await Contact.findOneAndUpdate({ _id: existingCaller?._id }, { $set: { sid: existingNumber?.sid }}, { new: true}).lean().exec();
+    }
+
+    if(!existingCaller?._id || !existingNumber?.sid) {
+      throw createHttpError(500, { message: "Your contact number doesn't exist. Please add your contact number and verify it" });
+    }
+
+    const recevingNumber = (countryCode || "") + (phoneNumber || "")
+    const existingReceivingNumber = await getNumber(recevingNumber)
+    
+    if(!existingReceivingNumber?.sid) {
+      throw createHttpError(500, { message: "Dialed number is not verified. Please verify it" });
     }
     
     const providerCallRateDetail = await getCallRate(existingCaller?.countryCode + existingCaller?.phoneNumber, countryCode + phoneNumber);
@@ -95,7 +114,8 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
           phoneNumber,
           countryCode,
           userId: existingUser?._id,
-          createdBy: user?._id
+          createdBy: user?._id,
+          sid: existingReceivingNumber?.sid
         }
       },
       {
@@ -125,15 +145,15 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
       userName: existingUser?.name,
     }
 
-    const call = await client.calls
-    .create({
-        twiml: '<Response><Say>Hello!</Say></Response>',
-        to: countryCode + phoneNumber,
-        from: existingCaller?.countryCode + existingCaller?.phoneNumber,
-        statusCallback: `${process.env.SERVER_URL}/calls/update`,
-        statusCallbackMethod: "POST",
-        statusCallbackEvent: ["initiated", "ringing", "answered", "completed"],
-    })
+    // const call = await client.calls
+    // .create({
+    //     twiml: '<Response><Say>Hello!</Say></Response>',
+    //     to: countryCode + phoneNumber,
+    //     from: existingCaller?.countryCode + existingCaller?.phoneNumber,
+    //     statusCallback: `${process.env.SERVER_URL}/calls/update`,
+    //     statusCallbackMethod: "POST",
+    //     statusCallbackEvent: ["initiated", "ringing", "answered", "completed"],
+    // })
 
     await Call.findOneAndUpdate({
        caller: existingCaller?._id,
@@ -147,8 +167,8 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
         receiver: contactAdded?._id,
         callerDetail,
         receiverDetail,
-        status: call?.status,
-        sid: call?.sid,
+        status: "", // call?.status,
+        sid: "", // call?.sid,
         creditUsed: user?.credit,
         providerCallRate: {
           name: Provider.TWILIO,
@@ -159,7 +179,8 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
           tax: 0
         },
         callRate: applicationCallRateDetail?._id,
-        callRateDetail 
+        callRateDetail,
+        dialerSid: accountSid 
       }
     }, { new: true, upsert: true}).lean().exec();
  
@@ -171,14 +192,26 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
 
 export const updateCallStatus = async (callId: string): Promise<any> => {
     try {
-      if(!accountSid || !authToken) {
-        createHttpError(500, { message: "Call status can't be updated. Please check credential of service provider and phone number." });
+      if(!accountSid || !authToken || !twilioPhoneNumber) {
+        throw createHttpError(500, { message: "Call status can't be updated. Please check credential of service provider and phone number." });
       }
+      const existingTwilioNumber = await getNumber(twilioPhoneNumber);
+  
+      // if(!existingTwilioNumber?.sid) {
+      //   throw createHttpError(500, { message: "Call status can't be updated. Please check credential of service provider and twilio phone number." });
+      // }
+
       const client = twilio(accountSid, authToken);
 
       const callData = await client.calls(callId).fetch();
 
-      const callDetail = await Call.findOne( { sid: callId }).lean();
+      const receivingNumber = await getNumber(callData?.to);
+
+      if(!receivingNumber?.sid) {
+        throw createHttpError(500, { message: "Call status can't be updated. Please check credential of service provider and dialed number." });
+      }
+
+      const callDetail = await Call.findOne( { "receiverDetail.sid": receivingNumber?.sid, dialerSid: accountSid, sid: "", status: "" }).lean();
 
       const callStartTime = callData?.startTime ? new Date(callData?.startTime) : null;
       const callEndTime = callData?.endTime ? new Date(callData?.endTime) : null;
@@ -197,13 +230,15 @@ export const updateCallStatus = async (callId: string): Promise<any> => {
 
       await Call.findOneAndUpdate( { 
         _id: callDetail?._id,
-      }, { $set: {
+      }, { 
+        $set: {
+         sid: callId,
          status: callData?.status,
          startedAt: callStartTime,
          endedAt: callEndTime,
          providerTotalPrice,
          creditAmountUsed
-      }}, { new: true}).lean().exec();
+      }}, { new: true, upsert: true }).lean().exec();
 
     } catch (error: any) {
       createHttpError(500, { message: "Call status can't be updated. Please check credential of service provider and phone number." });
@@ -381,5 +416,68 @@ export const getCallLog = async (userId: string, payload: CallLogPayload) => {
     };
   } catch(error) {
     throw createHttpError(500, { message: "Something went wrong in fetching call logs." });
+  }
+};
+
+export const generateToken = async (identity: string) => {
+  try {
+    if(!accountSid || !apiKeySid || !apiKeySecret) {
+      throw createHttpError(500, { message: "Token cannot be generated. Please check credential of service provider." });
+    }
+    const AccessToken = twilio.jwt.AccessToken;
+    const VoiceGrant = AccessToken.VoiceGrant;
+
+    const voiceGrant = new VoiceGrant({
+      outgoingApplicationSid: serviceSid,
+      incomingAllow: true,
+    });
+
+    const token = new AccessToken(accountSid, apiKeySid, apiKeySecret, {
+      identity: identity,
+    });
+
+    token.addGrant(voiceGrant);
+
+    return token.toJwt();
+
+  } catch (error) {
+    console.log("===========Error in fn to generate token", error);
+    throw createHttpError(500, { message: "Token cannot be generated. Please check credential of service provider." });
+  }
+};
+
+export const dialNumber = async (dialedNumber: string) => {
+  try {
+    if(!accountSid || !apiKeySid || !apiKeySecret) {
+      throw createHttpError(500, { message: "Token cannot be generated. Please check credential of service provider." });
+    }
+    const VoiceResponse = twilio.twiml.VoiceResponse;
+    const response = new VoiceResponse();
+
+    if (!dialedNumber) {
+      return createHttpError(500, { error: "Dialed number is not set" });
+    }
+
+    const statusCallbackUrl =
+      `${process.env.SERVER_URL}/call-status`;
+
+    const dial = response.dial({ callerId: process.env.TWILIO_PHONE_NUMBER });
+
+    dial.number(
+      {
+        statusCallback: statusCallbackUrl,
+        statusCallbackMethod: "POST",
+        statusCallbackEvent: ["initiated", "answered", "ringing", "completed"],
+      },
+      dialedNumber
+    );
+
+    return dial.toString();
+
+
+
+  } catch (error) {
+    console.log("===========Error in fn to dial number", error);
+    throw createHttpError(500, { message: "Something went wrong in dialing a number." });
   }
 };

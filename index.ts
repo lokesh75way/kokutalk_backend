@@ -14,9 +14,14 @@ import { loadConfig } from "./app/helper/config";
 import swaggerUi from 'swagger-ui-express';
 import { mergeSwaggerFiles } from "./mergeSwagger";
 import cors from 'cors';
+import { dialNumber, generateToken, makeCall, updateCallStatus } from "./app/services/call";
 const twilio = require("twilio");
 const WebSocket = require("ws");
 loadConfig();
+import { authMiddleware } from "./app/middleware/auth";
+import expressAsyncHandler from "express-async-handler";
+import { createResponse } from "./app/helper/response";
+import createHttpError from "http-errors";
 
 declare global {
   namespace Express {
@@ -57,10 +62,8 @@ app.use(bodyParser.json());
 app.use(express.json());
 app.use(morgan("dev"));
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const apiKeySid = process.env.TWILIO_API_KEY_SID;
-const apiKeySecret = process.env.TWILIO_API_KEY_SECRET;
-const serviceSid = process.env.TWILIO_APP_SERVICE_SID;
+
+// console.log("\n\n config detail", { accountSid, apiKeySid, apiKeySecret, serviceSid })
 
 const initApp = async (): Promise<void> => {
   // init mongodb
@@ -76,87 +79,57 @@ const initApp = async (): Promise<void> => {
     res.send({ status: "ok" });
   });
 
-  const generateToken = (identity: string) => {
-    const AccessToken = twilio.jwt.AccessToken;
-    const VoiceGrant = AccessToken.VoiceGrant;
-  
-    // Create a Voice grant for the token
-    const voiceGrant = new VoiceGrant({
-      outgoingApplicationSid: serviceSid,
-      incomingAllow: true,
-    });
-  
-    // Create an access token
-    const token = new AccessToken(accountSid, apiKeySid, apiKeySecret, {
-      identity: identity,
-    });
-  
-    token.addGrant(voiceGrant);
-  
-    return token.toJwt();
-  };
-
-  router.get("/token", (req, res) => {
-    const identity = req.body.identity || "user";
-    const token = generateToken(identity);
-    res.json({ token });
-  });
+  router.get("/token", authMiddleware, 
+    expressAsyncHandler(async (req, res) => {
+      const identity = req.body.identity || "user";
+      const token = await generateToken(identity);
+      res.send(createResponse(token, "Token generated successfully"));
+    })
+  )
 
   // Store the dialed number for use in /voice
   let dialedNumber = "";
 
   // /dial endpoint called from FE to update dailedNumber
-  router.post("/dial", (req, res) => {
-    const { _to } = req.body;
+  router.post("/dial", 
+    authMiddleware,
+    expressAsyncHandler( async (req, res) => {
+       const { _to } = req.body;
 
-    if (!_to) {
-      return res.status(400).json({ error: "_to is required" });
-    }
+       if(!_to) {
+         throw createHttpError(400, { message: "_to is required", data: {} })
+       }
 
-    dialedNumber = _to;
-    res.json({ message: `Dialed number set to ${dialedNumber}` });
-  });
+       dialedNumber = _to;
 
-  router.post("/voice", (req, res) => {
-    const VoiceResponse = twilio.twiml.VoiceResponse;
-    const response = new VoiceResponse();
+       res.send(createResponse({}, `Dialed number set to ${dialedNumber}`))
 
-    if (!dialedNumber) {
-      return res.status(400).json({ error: "Dialed number is not set" });
-    }
+    })
+  )
 
-    const statusCallbackUrl =
-      `${process.env.SERVER_URL}/call-status`;
+  router.post("/voice",
+    expressAsyncHandler(async (req, res) => {
+      const response = await dialNumber(dialedNumber);
+      res.type("text/xml");
+      res.send(response.toString());
+      // res.send(createResponse(response, `Dialed number set to ${dialedNumber}`));
+    })
+  );
 
-    const dial = response.dial({ callerId: process.env.TWILIO_PHONE_NUMBER });
+  router.post("/call-status", 
+    expressAsyncHandler(async (req, res) => {
+      const callStatus = req.body.CallStatus;
 
-    dial.number(
-      {
-        statusCallback: statusCallbackUrl,
-        statusCallbackMethod: "POST",
-        statusCallbackEvent: ["initiated", "answered", "ringing", "completed"],
-      },
-      dialedNumber
-    );
+      await updateCallStatus(req.body.CallSid)
 
-    res.type("text/xml");
-    res.send(response.toString());
-  });
-
-  router.post("/call-status", (req, res) => {
-    console.log("CallStatus:", req.body.CallStatus);
-    const callStatus = req.body.CallStatus;
-  
-    // Broadcast the status update to all connected WebSocket clients
-    wss.clients.forEach((client:any) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify(req.body));
-      }
-    });
-  
-    // Respond with HTTP 200 to acknowledge receipt
-    res.status(200).send(callStatus);
-  });
+      wss.clients.forEach((client:any) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify(req.body));
+        }
+      });
+      res.send(createResponse(callStatus, `Call status for ${req.body.CallSid} updated successulyys`));
+    })
+  );
 
 
   // routes

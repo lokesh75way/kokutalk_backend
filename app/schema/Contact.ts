@@ -15,7 +15,8 @@ export interface IContact extends BaseSchema {
   isDeleted: boolean,
   status?: string | null,
   sid?: string | null,
-  deletedAt ?: Date, 
+  deletedAt ?: Date,
+  parentContactSid?: string | null 
 }
 
 const ContactSchema = new Schema<IContact>(
@@ -31,6 +32,7 @@ const ContactSchema = new Schema<IContact>(
     deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
     isDeleted : {type : Boolean , required: true, default : false } ,
+    parentContactSid: { type: String },
     deletedAt : {type : Date } 
   },
   { timestamps: true }

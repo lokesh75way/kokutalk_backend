@@ -90,6 +90,7 @@ export interface ICall extends BaseSchema {
   creditAmountUsed: number,
   providerCallRate: IProvider,
   providerTotalPrice: number,
+  dialerSid?: string | null
 }
 
 const CallSchema = new Schema<ICall>(
@@ -112,6 +113,7 @@ const CallSchema = new Schema<ICall>(
     creditAmountUsed: { type: Number, required: true, default: 0 },
     providerCallRate: { type: ProviderSchema },
     providerTotalPrice: { type: Number, required: true, default: 0 },
+    dialerSid: { type: String },
   },
   { timestamps: true }
 );
