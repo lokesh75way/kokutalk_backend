@@ -38,17 +38,9 @@ interface CallLogPayload {
 
 export const makeCall = async (phoneNumber: string, countryCode: string, user: IUser): Promise<any> => {
   try {
-    console.log("\n\n country code", { phoneNumber, countryCode })
     if(!accountSid || !authToken || !countryCode || !phoneNumber || !twilioPhoneNumber) {
       throw createHttpError(500, { message: "Call can't be made. Please check credential of service provider and phone number." });
     }
-    const existingTwilioNumber = await getNumber(twilioPhoneNumber);
-
-    console.log("\n\n existingTwilio num", existingTwilioNumber)
-
-    // if(!existingTwilioNumber?.sid) {
-    //   throw createHttpError(500, { message: "Call can't be made. Please check credential of service provider and twilio phone number." });
-    // }
 
     const client = twilio(accountSid, authToken);
 
@@ -108,14 +100,14 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
     const contactAdded = await Contact.findOneAndUpdate(
       { phoneNumber, countryCode, userId: existingUser?._id, 
         createdBy: user?._id, isDeleted: false, 
-      }, 
+      },
       {
+        $set: { sid: existingReceivingNumber?.sid }, 
         $setOnInsert: {
           phoneNumber,
           countryCode,
           userId: existingUser?._id,
           createdBy: user?._id,
-          sid: existingReceivingNumber?.sid
         }
       },
       {
@@ -195,11 +187,6 @@ export const updateCallStatus = async (callId: string): Promise<any> => {
       if(!accountSid || !authToken || !twilioPhoneNumber) {
         throw createHttpError(500, { message: "Call status can't be updated. Please check credential of service provider and phone number." });
       }
-      const existingTwilioNumber = await getNumber(twilioPhoneNumber);
-  
-      // if(!existingTwilioNumber?.sid) {
-      //   throw createHttpError(500, { message: "Call status can't be updated. Please check credential of service provider and twilio phone number." });
-      // }
 
       const client = twilio(accountSid, authToken);
 
@@ -211,7 +198,10 @@ export const updateCallStatus = async (callId: string): Promise<any> => {
         throw createHttpError(500, { message: "Call status can't be updated. Please check credential of service provider and dialed number." });
       }
 
-      const callDetail = await Call.findOne( { "receiverDetail.sid": receivingNumber?.sid, dialerSid: accountSid, sid: "", status: "" }).lean();
+      const callDetail = await Call.findOne( { "receiverDetail.sid": receivingNumber?.sid, dialerSid: accountSid, sid: "", status: "",
+        isDeletedByCaller: false,
+       isDeletedByReceiver: false,
+       }).lean();
 
       const callStartTime = callData?.startTime ? new Date(callData?.startTime) : null;
       const callEndTime = callData?.endTime ? new Date(callData?.endTime) : null;
@@ -333,7 +323,8 @@ export const getCallRate = async (originNumber: string, destinationNumber: strin
 export const getCallLog = async (userId: string, payload: CallLogPayload) => {
   try {
     const { pageIndex = "", pageSize = "", firstName = "", lastName = "", phoneNumber = "", countryCode = "" } = payload;
-        
+    
+    console.log("\n\n user id", userId, payload)
     let pageIndexToSearch = pageIndex && !Number.isNaN(pageIndex) ? parseInt(pageIndex + "") : 1;
     let pageSizeToSearch = pageSize && !Number.isNaN(pageSize) ? parseInt(pageSize + "") : 10;
     pageIndexToSearch = pageIndexToSearch > 0 ? pageIndexToSearch : 1;
@@ -411,6 +402,8 @@ export const getCallLog = async (userId: string, payload: CallLogPayload) => {
       }},
     ]).allowDiskUse(true).exec();
 
+    console.log("\n\n total calls", calls)
+
     return { log: calls, totalCount: callCount, pageCount: Math.ceil(callCount/pageSizeToSearch),
             pageIndex: pageIndexToSearch, pageSize: pageSizeToSearch, count: calls.length
     };
@@ -473,8 +466,6 @@ export const dialNumber = async (dialedNumber: string) => {
     );
 
     return dial.toString();
-
-
 
   } catch (error) {
     console.log("===========Error in fn to dial number", error);

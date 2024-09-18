@@ -100,7 +100,13 @@ const initApp = async (): Promise<void> => {
          throw createHttpError(400, { message: "_to is required", data: {} })
        }
 
+
+       const phoneNumber = dialedNumber.slice(-10);
+       const countryCode = dialedNumber.slice(0, dialedNumber.length - 10);
+
        dialedNumber = _to;
+       
+       await makeCall(phoneNumber, countryCode, req.user!)
 
        res.send(createResponse({}, `Dialed number set to ${dialedNumber}`))
 
