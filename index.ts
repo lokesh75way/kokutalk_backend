@@ -9,12 +9,14 @@ import userRoutes from "./app/routes/user";
 import contactRoutes from "./app/routes/contact";
 import callRoutes from "./app/routes/call";
 import notificationRoutes from "./app/routes/notification";
+import creditRoutes from "./app/routes/credit";
 import { IUser } from "./app/schema/User";
 import { loadConfig } from "./app/helper/config";
 import swaggerUi from 'swagger-ui-express';
 import { mergeSwaggerFiles } from "./mergeSwagger";
 import cors from 'cors';
 import { dialNumber, generateToken, makeCall, updateCallStatus } from "./app/services/call";
+import Contact from "./app/schema/Contact";
 const twilio = require("twilio");
 const WebSocket = require("ws");
 loadConfig();
@@ -90,6 +92,8 @@ const initApp = async (): Promise<void> => {
   // Store the dialed number for use in /voice
   let dialedNumber = "";
 
+  let dialingNumber = "";
+
   // /dial endpoint called from FE to update dailedNumber
   router.post("/dial", 
     authMiddleware,
@@ -100,6 +104,9 @@ const initApp = async (): Promise<void> => {
          throw createHttpError(400, { message: "_to is required", data: {} })
        }
 
+       let existingCaller = await Contact.findOne({ _id: req?.user?.contact, isDeleted: false}).lean();
+       
+       dialingNumber = (existingCaller?.countryCode || "") + (existingCaller?.phoneNumber || "");
 
        const phoneNumber = dialedNumber.slice(-10);
        const countryCode = dialedNumber.slice(0, dialedNumber.length - 10);
@@ -115,7 +122,7 @@ const initApp = async (): Promise<void> => {
 
   router.post("/voice",
     expressAsyncHandler(async (req, res) => {
-      const response = await dialNumber(dialedNumber);
+      const response = await dialNumber(dialedNumber, dialingNumber);
       res.type("text/xml");
       res.send(response.toString());
       // res.send(createResponse(response, `Dialed number set to ${dialedNumber}`));
@@ -143,6 +150,7 @@ const initApp = async (): Promise<void> => {
   router.use("/contacts", contactRoutes)
   router.use("/calls", callRoutes);
   router.use("/notifications", notificationRoutes);
+  router.use("/credits", creditRoutes);
   router.use('/docs', swaggerUi.serve, swaggerUi.setup(mergedSwagger));
 
   // error handler

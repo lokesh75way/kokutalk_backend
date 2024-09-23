@@ -324,7 +324,6 @@ export const getCallLog = async (userId: string, payload: CallLogPayload) => {
   try {
     const { pageIndex = "", pageSize = "", firstName = "", lastName = "", phoneNumber = "", countryCode = "" } = payload;
     
-    console.log("\n\n user id", userId, payload)
     let pageIndexToSearch = pageIndex && !Number.isNaN(pageIndex) ? parseInt(pageIndex + "") : 1;
     let pageSizeToSearch = pageSize && !Number.isNaN(pageSize) ? parseInt(pageSize + "") : 10;
     pageIndexToSearch = pageIndexToSearch > 0 ? pageIndexToSearch : 1;
@@ -402,8 +401,6 @@ export const getCallLog = async (userId: string, payload: CallLogPayload) => {
       }},
     ]).allowDiskUse(true).exec();
 
-    console.log("\n\n total calls", calls)
-
     return { log: calls, totalCount: callCount, pageCount: Math.ceil(callCount/pageSizeToSearch),
             pageIndex: pageIndexToSearch, pageSize: pageSizeToSearch, count: calls.length
     };
@@ -439,7 +436,7 @@ export const generateToken = async (identity: string) => {
   }
 };
 
-export const dialNumber = async (dialedNumber: string) => {
+export const dialNumber = async (dialedNumber: string, dialingNumber: string) => {
   try {
     if(!accountSid || !apiKeySid || !apiKeySecret) {
       throw createHttpError(500, { message: "Token cannot be generated. Please check credential of service provider." });
@@ -454,7 +451,7 @@ export const dialNumber = async (dialedNumber: string) => {
     const statusCallbackUrl =
       `${process.env.SERVER_URL}/call-status`;
 
-    const dial = response.dial({ callerId: process.env.TWILIO_PHONE_NUMBER });
+    const dial = response.dial({ callerId: dialingNumber ? dialingNumber :  process.env.TWILIO_PHONE_NUMBER });
 
     dial.number(
       {
