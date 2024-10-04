@@ -12,7 +12,7 @@ router.post(
   "/",
   authMiddleware,
   checkPermission([ROLE.USER]),
-  // validate("payment:add"),
+  validate("payment:add"),
   catchError,
   expressAsyncHandler(async (req, res) => {
     const userId =  req?.user?._id || "";
