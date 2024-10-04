@@ -1,43 +1,48 @@
 {
     "tags": [
       {
-        "name": "Contact",
-        "description": "API for contact CRUD operations."
+        "name": "Notification",
+        "description": "API for notification CRUD operations."
       }
     ],
     "components": {
       "schemas": {
-        "ContactResponseSchema": {
+        "NotificationResponseSchema": {
           "type": "object",
           "properties": {
             "_id": {
               "type": "string",
               "example": "666968c3bb67a71a9b27fe57"
             },
-            "firstName": {
+            "entityType": {
               "type": "string",
-              "example": "first name"
+              "example": "credit"
             },
-            "lastName": {
+            "entityTypeId": {
                 "type": "string",
-                "example": "last name"
+                "example": "666968c3bb67a71a9b27fe56"
             },
-            "phoneNumber": {
-              "type": "string",
-              "example": "3409129812"
+            "isSeen": {
+              "type": "boolean",
+              "example": false
             },
-            "countryCode": {
-              "type": "string",
-              "example": "+91"
+            "seenAt": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2024-06-18T09:22:11.200Z"
             },
             "status": {
               "type": "string",
               "example": ""
             },
-            "sid": {
+            "userId": {
                 "type": "string",
-                "example": ""
-              },
+                "example": "666968c3bb67a71a9b27fe56"
+            },
+            "message": {
+                "type": "string",
+                "example": "New notification"
+            },
             "isDeleted": {
               "type": "boolean",
               "example": false
@@ -55,179 +60,72 @@
             "__v": {
               "type": "number",
               "example": 0
-            },
-            "userId": {
-                "type": "string",
-                "example": "666968c3bb67a71a9b27fe56"
-              },
-            "createdBy": {
-              "type": "string",
-              "example": "666968c3bb67a71a9b27fe56"
-            },
-            "updatedBy": {
-              "type": "string",
-              "example": "666968c3bb67a71a9b27fe58"
             }
           }
         }
       }
     },
     "paths": {
-      "/contacts": {
-        "post": {
-          "summary": "Add contact of user",
-          "description": "Endpoint to add contact",
-          "tags": ["Contact"],
-          "security": [{ "bearerAuth": [] }],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "phoneNumber": { "type": "string" },
-                    "countryCode": { "type": "string" },
-                    "firstName": { "type": "string" },
-                    "lastName": { "type": "string" }
-                  },
-                  "required": ["phoneNumber", "countryCode", "firstName"]
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "success": {
-                        "type": "boolean",
-                        "example": true
-                      },
-                      "message": {
-                        "type": "string",
-                        "example": "Contact added successfully"
-                      },
-                      "data": {
-                        "type": "object",
-                        "properties": {
-                            "contact": { "$ref": "#/components/schemas/ContactResponseSchema" }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "description": "",
-                    "$ref": "#/components/schemas/BadRequestSchema"
-                  }
-                }
-              }
-            },
-            "401": {
-                "description": "",
-                "content": {
-                  "application/json": {
-                    "schema": {
-                      "description": "",
-                      "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
-                    }
-                  }
-                }
-            },
-            "404":  {
-              "description": "",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "description": "",
-                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
-                  }
-                }
-              }
-            },
-            "500": {
-              "description": "",
-              "content": {
-                "application/json": {
-                    "schema": {
-                      "description": "",
-                      "$ref": "#/components/schemas/ErrorResponseSchema"
-                    }
-                }
-              }
-            }
-          }
-        },
+      "/notifications": {
         "get": {
-            "summary": "Get contact list of user",
-            "description": "Endpoint to get contact list of user",
-            "tags": ["Contact"],
+            "summary": "Get notification list of user",
+            "description": "Endpoint to get notification list of user",
+            "tags": ["Notification"],
             "security": [{ "bearerAuth": [] }],
             "parameters": [
                 {
-                  "name": "firstName",
+                  "name": "entityType",
                   "in": "query",
-                  "description": "First name of the contact to search",
+                  "description": "Entity type of the notification to search",
                   "schema": {
                     "type": "string",
-                    "example": "name"
+                    "example": "credit"
                   }
                 },
                 {
-                    "name": "lastName",
+                    "name": "entityTypeId",
                     "in": "query",
-                    "description": "Last name of the contact to search",
+                    "description": "Id of entity type of the notification to search",
                     "schema": {
                       "type": "string",
-                      "example": "name"
+                      "example": "666968c3bb67a71a9b27fe56"
                     }
                 },
                 {
-                    "name": "phoneNumber",
+                    "name": "message",
                     "in": "query",
-                    "description": "Phone number of the contact to search",
+                    "description": "Message of the notification to search",
                     "schema": {
                       "type": "string",
-                      "example": "923409890123"
+                      "example": "new notification"
                     }
                 },
                 {
-                    "name": "countryCode",
+                    "name": "isSeen",
                     "in": "query",
-                    "description": "Country code of the contact to search",
+                    "description": "View status of the notification to search",
                     "schema": {
-                      "type": "string",
-                      "example": "+91"
+                      "type": "boolean",
+                      "example": false
                     }
                 },
                 {
-                  "name": "pageIndex",
-                  "in": "query",
-                  "description": "Index of page to search",
-                  "schema": {
-                    "type": "any",
-                    "example": "1"
-                  }
-                },
-                {
-                      "name": "pageSize",
-                      "in": "query",
-                      "description": "Number of entries to return in one page",
-                      "schema": {
+                    "name": "pageIndex",
+                    "in": "query",
+                    "description": "Index of page to search",
+                    "schema": {
                       "type": "any",
                       "example": "1"
-                      }
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "in": "query",
+                    "description": "Number of entries to return in one page",
+                    "schema": {
+                      "type": "any",
+                      "example": "1"
+                    }
                 }
             ],
             "responses": {
@@ -244,15 +142,15 @@
                         },
                         "message": {
                           "type": "string",
-                          "example": "Contact list fetched succesfully"
+                          "example": "Notification list fetched succesfully"
                         },
                         "data": {
                           "type": "object",
                           "properties": {
-                              "contact": { 
+                              "notifications": { 
                                 "type": "array",
                                 "items": {
-                                  "$ref": "#/components/schemas/ContactResponseSchema" } 
+                                  "$ref": "#/components/schemas/NotificationResponseSchema" } 
                                 },
                                 "totalCount": { "type": "number", "example": 1 },
                                 "pageCount": { "type": "number", "example": 1 },
@@ -315,41 +213,24 @@
         }
       },
   
-      "/contacts/{id}": {
+      "/notifications/{id}": {
         "put": {
-          "summary": "Edit contact by id",
-          "description": "Endpoint to update contact",
-          "tags": ["Contact"],
+          "summary": "Edit notification by id",
+          "description": "Endpoint to update notification as seen",
+          "tags": ["Notification"],
           "security": [{ "bearerAuth": [] }],
           "parameters": [
             {
               "name": "id",
               "in": "path",
               "required": true,
-              "description": "ID of the contact to be updated",
+              "description": "ID of the notification to be updated",
               "schema": {
                 "type": "string",
                 "example": "60d0fe4f5311236168a109ca"
               }
             }
           ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "phoneNumber": { "type": "string" },
-                    "countryCode": { "type": "string" },
-                    "firstName": { "type": "string" },
-                    "lastName": { "type": "string" }
-                  },
-                  "required": ["phoneNumber", "countryCode", "firstName"]
-                }
-              }
-            }
-          },
           "responses": {
             "200": {
               "description": "",
@@ -364,12 +245,12 @@
                       },
                       "message": {
                         "type": "string",
-                        "example": "Contact updated successfully"
+                        "example": "Notification updated successfully"
                       },
                       "data": {
                         "type": "object",
                         "properties": {
-                            "contact": { "$ref": "#/components/schemas/ContactResponseSchema" }
+                            "contact": { "$ref": "#/components/schemas/NotificationResponseSchema" }
                         }
                       }
                     }
@@ -424,16 +305,16 @@
           }
         },
         "get": {
-            "summary": "Get contact by id",
-            "description": "Endpoint to get contact by id",
-            "tags": ["Contact"],
+            "summary": "Get notification by id",
+            "description": "Endpoint to get notification by id",
+            "tags": ["Notification"],
             "security": [{ "bearerAuth": [] }],
             "parameters": [
               {
                 "name": "id",
                 "in": "path",
                 "required": true,
-                "description": "ID of the contact to fetch",
+                "description": "ID of the notification to fetch",
                 "schema": {
                   "type": "string",
                   "example": "60d0fe4f5311236168a109ca"
@@ -454,102 +335,12 @@
                         },
                         "message": {
                           "type": "string",
-                          "example": "Contact detail fetched successfully"
+                          "example": "Notification detail fetched successfully"
                         },
                         "data": {
                           "type": "object",
                           "properties": {
-                              "contact": { "$ref": "#/components/schemas/ContactResponseSchema" }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              },
-              "400": {
-                "description": "",
-                "content": {
-                  "application/json": {
-                    "schema": {
-                      "description": "",
-                      "$ref": "#/components/schemas/BadRequestSchema"
-                    }
-                  }
-                }
-              },
-              "401": {
-                  "description": "",
-                  "content": {
-                    "application/json": {
-                      "schema": {
-                        "description": "",
-                        "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
-                      }
-                    }
-                  }
-              },
-              "404":  {
-                "description": "",
-                "content": {
-                  "application/json": {
-                    "schema": {
-                      "description": "",
-                      "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
-                    }
-                  }
-                }
-              },
-              "500": {
-                "description": "",
-                "content": {
-                  "application/json": {
-                      "schema": {
-                        "description": "",
-                        "$ref": "#/components/schemas/ErrorResponseSchema"
-                      }
-                  }
-                }
-              }
-            }
-        },
-        "delete": {
-            "summary": "Delete contact by id",
-            "description": "Endpoint to delete contact by id",
-            "tags": ["Contact"],
-            "security": [{ "bearerAuth": [] }],
-            "parameters": [
-              {
-                "name": "id",
-                "in": "path",
-                "required": true,
-                "description": "ID of the contact to delete",
-                "schema": {
-                  "type": "string",
-                  "example": "60d0fe4f5311236168a109ca"
-                }
-              }
-            ],
-            "responses": {
-              "200": {
-                "description": "",
-                "content": {
-                  "application/json": {
-                    "schema": {
-                      "type": "object",
-                      "properties": {
-                        "success": {
-                          "type": "boolean",
-                          "example": true
-                        },
-                        "message": {
-                          "type": "string",
-                          "example": "Contact deleted successfully"
-                        },
-                        "data": {
-                          "type": "object",
-                          "properties": {
-                              "contact": { "$ref": "#/components/schemas/ContactResponseSchema" }
+                              "notification": { "$ref": "#/components/schemas/NotificationResponseSchema" }
                           }
                         }
                       }

@@ -1,0 +1,273 @@
+{
+    "tags": [
+      {
+        "name": "Credit",
+        "description": "API for credit CRUD operations."
+      }
+    ],
+    "components": {
+      "schemas": {
+        "CreditResponseSchema": {
+          "type": "object",
+          "properties": {
+            "_id": {
+              "type": "string",
+              "example": "666968c3bb67a71a9b27fe57"
+            },
+            "totalAmount": {
+              "type": "number",
+              "example": 100
+            },
+            "remainingAmount": {
+              "type": "number",
+              "example": 100
+            },
+            "entityTypeId": {
+                "type": "string",
+                "example": "666968c3bb67a71a9b27fe56"
+            },
+            
+            "status": {
+              "type": "string",
+              "example": ""
+            },
+            "usedBy": {
+                "type": "string",
+                "example": "666968c3bb67a71a9b27fe56"
+            },
+            "sentBy": {
+                "type": "string",
+                "example": null
+            },
+            "isDeleted": {
+              "type": "boolean",
+              "example": false
+            },
+            "currency": {
+                "type": "string",
+                "enum": ["USD", "INR"]
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2024-06-18T09:22:11.200Z"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2024-06-18T12:23:40.803Z"
+            },
+            "__v": {
+              "type": "number",
+              "example": 0
+            }
+          }
+        }
+      }
+    },
+    "paths": {
+      "/credits": {
+        "get": {
+            "summary": "Get credit list of user",
+            "description": "Endpoint to get credit list of user",
+            "tags": ["Credit"],
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                {
+                    "name": "pageIndex",
+                    "in": "query",
+                    "description": "Index of page to search",
+                    "schema": {
+                      "type": "any",
+                      "example": "1"
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "in": "query",
+                    "description": "Number of entries to return in one page",
+                    "schema": {
+                      "type": "any",
+                      "example": "1"
+                    }
+                }
+            ],
+            "responses": {
+              "200": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Credit list fetched succesfully"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                              "credits": { 
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/components/schemas/CreditResponseSchema" } 
+                                },
+                                "totalCount": { "type": "number", "example": 1 },
+                                "pageCount": { "type": "number", "example": 1 },
+                                "pageIndex": { "type": "number", "example": 1 },
+                                "pageSize": { "type": "number", "example": 10 },
+                                "count": { "type": "number", "example": 1 }
+                                
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/BadRequestSchema"
+                    }
+                  }
+                }
+              },
+              "401": {
+                  "description": "",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                      }
+                    }
+                  }
+              },
+              "404":  {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                    }
+                  }
+                }
+              },
+              "500": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/ErrorResponseSchema"
+                      }
+                  }
+                }
+              }
+            }
+        }
+      },
+  
+      "/credits/{id}": {
+        "get": {
+            "summary": "Get credit by id",
+            "description": "Endpoint to get credit by id",
+            "tags": ["Credit"],
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+              {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "description": "ID of the credit to fetch",
+                "schema": {
+                  "type": "string",
+                  "example": "60d0fe4f5311236168a109ca"
+                }
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Credit detail fetched successfully"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                              "credit": { "$ref": "#/components/schemas/CreditResponseSchema" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/BadRequestSchema"
+                    }
+                  }
+                }
+              },
+              "401": {
+                  "description": "",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                      }
+                    }
+                  }
+              },
+              "404":  {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                    }
+                  }
+                }
+              },
+              "500": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/ErrorResponseSchema"
+                      }
+                  }
+                }
+              }
+            }
+        }
+      }
+    }
+}

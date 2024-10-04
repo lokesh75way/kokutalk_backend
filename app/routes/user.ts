@@ -31,7 +31,7 @@ router.put(
   passport.authenticate("login", { session: false }),
   expressAsyncHandler(async (req, res) => {
     res.send(
-      createResponse({ ...createUserToken(req.user!), user: req.user }, "User verified for provided otp")
+      createResponse({ ...await createUserToken(req.user!), user: req.user }, "User verified for provided otp")
     );
   })
 )

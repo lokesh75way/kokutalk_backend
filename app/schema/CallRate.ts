@@ -22,7 +22,10 @@ export interface ICallRate extends BaseSchema {
   currency: string,
   isDeleted: boolean,
   status ?: string | null,
-  deletedAt ?: Date, 
+  deletedAt ?: Date,
+  createdBy: Types.ObjectId, 
+  updatedBy?: Types.ObjectId | null, 
+  deletedBy?: Types.ObjectId | null,  
 }
 
 const CallRateSchema = new Schema<ICallRate>(
@@ -38,7 +41,10 @@ const CallRateSchema = new Schema<ICallRate>(
     tax: { type: Number, required: true, default: 0 },
     currency: { type: String, required: true, default: Currency.USD },
     isDeleted : {type : Boolean , default : false } ,
-    deletedAt : {type : Date } 
+    deletedAt : {type : Date },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'admin', required: true },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'admin' },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'admin' }, 
   },
   { timestamps: true }
 );

@@ -69,8 +69,28 @@
               "example": "666968c3bb67a71a9b27fe58"
             }
           }
+        },
+        "CallLogSchema": {
+          "type": "object",
+          "properties": {
+            "_id": {
+              "type": "object",
+              "properties": {
+                "caller": { 
+                  "type": "string", "example": "666968c3bb67a71a9b27fe57" },
+                "receiver": { 
+                  "type": "string", "example": "666968c3bb67a71a9b27fe57" }
+                }
+            },
+            "calls": {
+              "type": "array",
+               "items": {
+                 "$ref": "#/components/schemas/CallResponseSchema" 
+                } 
+            }
         }
       }
+    }
     },
     "paths": {
       "/calls/dial": {
@@ -267,6 +287,62 @@
             "description": "Endpoint to get call logs of user",
             "tags": ["Call"],
             "security": [{ "bearerAuth": [] }],
+            "parameters": [
+              {
+                "name": "firstName",
+                "in": "query",
+                "description": "First name of the caller/recciver to search",
+                "schema": {
+                  "type": "string",
+                  "example": "name"
+                }
+              },
+              {
+                  "name": "lastName",
+                  "in": "query",
+                  "description": "Last name of the caller/receiver to search",
+                  "schema": {
+                    "type": "string",
+                    "example": "name"
+                  }
+              },
+              {
+                  "name": "phoneNumber",
+                  "in": "query",
+                  "description": "Phone number of the caller/receiver to search",
+                  "schema": {
+                    "type": "string",
+                    "example": "923409890123"
+                  }
+              },
+              {
+                  "name": "countryCode",
+                  "in": "query",
+                  "description": "Country code of the caller/receiver to search",
+                  "schema": {
+                    "type": "string",
+                    "example": "+91"
+                  }
+              },
+              {
+                "name": "pageIndex",
+                "in": "query",
+                "description": "Index of page to search",
+                "schema": {
+                  "type": "any",
+                  "example": "1"
+                }
+            },
+            {
+                "name": "pageSize",
+                "in": "query",
+                "description": "Number of entries to return in one page",
+                "schema": {
+                  "type": "any",
+                  "example": "1"
+                }
+            }
+          ],
             "responses": {
               "200": {
                 "description": "",
@@ -281,23 +357,22 @@
                         },
                         "message": {
                           "type": "string",
-                          "example": "Contact list fetched succesfully"
+                          "example": "Call logs fetched successfully"
                         },
                         "data": {
                           "type": "object",
                           "properties": {
-                              "_id": { 
-                                 "type": "object",
-                                 "properties": {
-                                    "caller": { "type": "string", "example": "667a62f59088474f9a9324c3" },
-                                    "receiver": { "type": "string", "example": "667a64ef9088474f9a932661" }
-                                 }
-                              },
-                              "calls": { 
+                              "log": { 
                                 "type": "array",
                                 "items": {
-                                  "$ref": "#/components/schemas/CallResponseSchema" } 
-                                }  
+                                  "$ref": "#/components/schemas/CallLogSchema" } 
+                                },
+                                "totalCount": { "type": "number", "example": 1 },
+                                "pageCount": { "type": "number", "example": 1 },
+                                "pageIndex": { "type": "number", "example": 1 },
+                                "pageSize": { "type": "number", "example": 10 },
+                                "count": { "type": "number", "example": 1 }
+                                
                           }
                         }
                       }

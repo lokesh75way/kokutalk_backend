@@ -1,19 +1,30 @@
 import jwt from "jsonwebtoken";
 import passport from "passport";
+import bcrypt from "bcrypt";
 import { Strategy, ExtractJwt } from "passport-jwt";
 import { Strategy as LocalStrategy } from "passport-local";
 import { parseExpireTime } from "./otp";
 import createError from "http-errors";
 import * as UserService from "./user";
+import * as AdminService from "./admin";
 import * as OtpService from "./otp";
 import { IUser } from "../schema/User";
+import { IToken } from "../schema/Token";
+import { IAdmin } from "../schema/Admin";
+import { saveSessionToken } from "./token";
 
-const TokenExpireTime = process.env.TOKEN_EXPIRATION_TIME || "24h";
+const AccessTokenExpireTime = process.env.ACCESS_TOKEN_EXPIRATION_TIME || "24h";
+const RefreshTokenExpireTime  = process.env.REFRESH_TOKEN_EXPIRATION_TIME || '7d'
 interface JwtPayload {
   data: string;
   iat?: number;  // Issued at timestamp
   exp?: number;  // Expiration timestamp
 }
+
+export const isValidPassword = async function (value: string, password: string) {
+  const compare = await bcrypt.compare(value, password);
+  return compare;
+};
 
 export const initPassport = (): void => {
   passport.use(
@@ -62,7 +73,36 @@ export const initPassport = (): void => {
           }
           const { otp: _otp, card: _card, invitedBy: _invitedBy, ...result } = user;
           await OtpService.updateOtp(otpData[0]);
-          done(null, result, { message: "User verified for provided otp" });
+          done(null, result as IUser, { message: "User verified for provided otp" });
+        } catch (error: any) {
+          done(createError(500, error.message));
+        }
+      }
+    )
+  );
+
+  // admin login
+  passport.use(
+    "admin-login",
+    new LocalStrategy(
+      {
+        usernameField: "email",
+        passwordField: "password",
+      },
+      async (email, password, done) => {
+        try {
+          const admin = await AdminService.getAdminByEmail(email);
+          if (!admin?._id) {
+            done(createError(400, "Admin not registered."), false);
+            return;
+          }
+          const validate = await isValidPassword(password?.trim(), admin?.password?.trim());
+          if (!validate) {
+            done(createError(400, "Password mismatch"), false);
+            return;
+          }
+          const { password: _p, ...result } = admin;
+          done(null, {...result, contact: null}, { message: "Logged in Successfully"});
         } catch (error: any) {
           done(createError(500, error.message));
         }
@@ -77,10 +117,15 @@ export const decodeToken = (token: string) => {
   return decode ;
 };
 
-export const createUserToken = (user: Omit<IUser, "otp invitedBy card">, expirationTime?:string) => {
-  const expireTime = parseExpireTime(expirationTime || TokenExpireTime)
+export const createUserToken = async(user: Omit<IUser, "otp invitedBy card">, 
+  accessTokenExpirationTime?: string,
+  refreshTokenExpirationTime?: string,
+) => {
+  const accessTokenExpireTime = parseExpireTime(accessTokenExpirationTime || AccessTokenExpireTime);
+  const refreshTokenExpireTime = parseExpireTime(refreshTokenExpirationTime || RefreshTokenExpireTime);
   const jwtSecret = process.env.JWT_SECRET ?? "";
-  const expiresIn = expireTime;
+  const accessTokenExpiresIn = accessTokenExpireTime;
+  const refreshTokenExpiresIn = refreshTokenExpireTime;
   const payload = {
     user:{
       _id : user._id,
@@ -98,15 +143,43 @@ export const createUserToken = (user: Omit<IUser, "otp invitedBy card">, expirat
       credit: user.credit
     }
   };
-  const token = jwt.sign(payload, jwtSecret, {expiresIn});
-  return { accessToken: token };
+  const accessToken = jwt.sign(payload, jwtSecret, {expiresIn: accessTokenExpiresIn });
+  const refreshToken = jwt.sign({ user: { _id: user?._id } }, jwtSecret, {expiresIn: refreshTokenExpiresIn });
+  const expireAt = new Date(Date.now() + accessTokenExpireTime * 1000);
+  await saveSessionToken("", user?._id || "", { value: accessToken, expireAt, refreshToken })
+  return { accessToken, refreshToken };
 };
 
-export const createToken = (data : string,expirationTime?:string) => {
-  const expireTime = parseExpireTime(expirationTime || TokenExpireTime)
+export const createAdminToken = async (
+  user: Omit<IAdmin, "password"> | Omit<IUser, "otp invitedBy card">,
+  accessTokenExpirationTime?: string,
+  refreshTokenExpirationTime?: string,
+) => {
+  const accessTokenExpireTime = parseExpireTime(accessTokenExpirationTime || AccessTokenExpireTime);
+  const refreshTokenExpireTime = parseExpireTime(refreshTokenExpirationTime || RefreshTokenExpireTime);
+
   const jwtSecret = process.env.JWT_SECRET ?? "";
-  const expiresIn = expireTime;
-  const payload = {data};
-  const token = jwt.sign(payload, jwtSecret,{expiresIn});
-  return { accessToken: token};
-}
+  const accessTokenExpiresIn = accessTokenExpireTime;
+  const refreshTokenExpiresIn = refreshTokenExpireTime;
+  const payload = {
+    user: {
+      _id : user._id,
+      name : user?.name,
+      phoneNumber : user.phoneNumber,
+      countryCode : user.countryCode,
+      status : user?.status,
+      isDeleted : user.isDeleted,
+      termsAgreed : user.termsAgreed,
+      allowSmsNotification : user.allowSmsNotification,
+      allowEmailNotification : user.allowEmailNotification,
+      createdAt : user.createdAt,
+      updatedAt : user.updatedAt,
+      email: (user as IAdmin)?.email
+    },
+  };
+  const accessToken = jwt.sign(payload, jwtSecret, {expiresIn: accessTokenExpiresIn });
+  const refreshToken = jwt.sign({ user: { _id: user?._id } }, jwtSecret, {expiresIn: refreshTokenExpiresIn });
+  const expireAt = new Date(Date.now() + accessTokenExpireTime * 1000);
+  await saveSessionToken(user?._id || "", "", { value: accessToken, expireAt, refreshToken })
+  return { accessToken, refreshToken };
+};

@@ -10,6 +10,9 @@ import contactRoutes from "./app/routes/contact";
 import callRoutes from "./app/routes/call";
 import notificationRoutes from "./app/routes/notification";
 import creditRoutes from "./app/routes/credit";
+import adminRoutes from "./app/routes/admin";
+import callRateRoutes from "./app/routes/call-rate";
+import paymentRoutes from "./app/routes/payment";
 import { IUser } from "./app/schema/User";
 import { loadConfig } from "./app/helper/config";
 import swaggerUi from 'swagger-ui-express';
@@ -24,13 +27,18 @@ import { authMiddleware } from "./app/middleware/auth";
 import expressAsyncHandler from "express-async-handler";
 import { createResponse } from "./app/helper/response";
 import createHttpError from "http-errors";
+import { IAdmin } from "./app/schema/Admin";
 
 declare global {
   namespace Express {
-    interface User extends Omit<IUser, "otp invitedBy card"> {}
+    interface User extends Omit<IUser, "otp invitedBy card password"> {
+      email?: string,
+      password?: string
+    }
     interface Request {
       user?: User;
     }
+    
   }
 }
 
@@ -151,6 +159,9 @@ const initApp = async (): Promise<void> => {
   router.use("/calls", callRoutes);
   router.use("/notifications", notificationRoutes);
   router.use("/credits", creditRoutes);
+  router.use("/admins", adminRoutes);
+  router.use("/call-rates", callRateRoutes);
+  router.use("/payments", paymentRoutes);
   router.use('/docs', swaggerUi.serve, swaggerUi.setup(mergedSwagger));
 
   // error handler

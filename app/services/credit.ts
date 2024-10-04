@@ -1,11 +1,32 @@
 import createHttpError from "http-errors";
-import Credit from "../schema/Credit";
+import Credit, { ICredit} from "../schema/Credit";
+import { CURRENCY } from "../schema/Payment";
 
 interface CreditPayload {
     pageIndex?: string | number | null;
     pageSize?: string | number | null;
 }
 
+export const addCredit = async (userId: string, data: Partial<ICredit>) => {
+    try {  
+      const userCredit = await Credit.findOneAndUpdate(
+        { usedBy: userId, isDeleted: false },
+        {
+          $inc: { totalAmount: data?.totalAmount, remainingAmount: data?.remainingAmount  },
+          $setOnInsert: {
+            usedBy: userId,
+            currency: data.currency || CURRENCY.USD,
+          }
+        },
+        { new: true, upsert: true }
+      ).lean().exec();
+
+      return userCredit;
+
+    } catch (error) {
+        throw createHttpError(500, { message: "Something went wrong in adding credit for user." });
+    }
+};
 
 export const getCredit = async (userId: string, payload: CreditPayload) => {
     try {
@@ -48,4 +69,3 @@ export const getCreditById = async (userId: string, creditId: string) => {
         throw createHttpError(500, { message: "Something went wrong in fetching credit by id." });
     }
 };
-

@@ -11,6 +11,27 @@ interface NotificationPayload {
     pageSize?: string | number | null;
 }
 
+export const saveNotification = async (userId: string, data: Partial<INotification>) => {
+    try {
+        const notification = await Notification.findOneAndUpdate(
+            { userId, entityTypeId: data.entityTypeId, 
+             isDeleted: false, isSeen: false,            },
+            { $setOnInsert: {
+              ...data, userId
+            }},
+            {
+                new: true,
+                upsert: true
+            }
+        );
+
+        return { notification };
+
+    } catch(error) {
+        throw createHttpError(500, { message: "Something went wrong in saving notification." });
+    }
+};
+
 export const updateNotification = async (userId: string, notificationId: string, data: Partial<INotification>) => {
     try {
         const contact = await Notification.findOneAndUpdate({ _id: notificationId, userId, isDeleted: false }, 

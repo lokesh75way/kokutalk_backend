@@ -9,6 +9,11 @@ interface PriceDetail {
   currency: string;
 }
 
+interface PageDetail {
+  field: string;
+  defaultValue: number
+}
+
 export const  calculatePrice = (startTime: Date, endTime: Date, priceDetail: PriceDetail| null = null): number => {
   if(!priceDetail) {
     return 0;
@@ -37,4 +42,28 @@ const calculateDuration = (startTime: Date, endTime: Date, unit: string = Durati
 // Helper fn to replace special character as literal character in regex string
 export const escapeRegex = (input: string): string => {
    return input.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+}
+
+export const parsePayload = (input: string = '{}', fields: string[]): any => {
+  const parsedPayload:any = {};
+  const payloadInput = JSON.parse(input);
+  for(let currField of fields) {
+      if(payloadInput[currField] && payloadInput[currField]?.trim()) {
+          parsedPayload[`${currField}`] = new RegExp(escapeRegex(payloadInput[currField]?.trim()), 'i')
+      }
+  }
+  return parsedPayload;
+}
+
+export const parsePagination = (input: string = '{}', fields: PageDetail[]): any => {
+  const parsedPayload:any = {};
+  const payloadInput = JSON.parse(input);
+  for(let currField of fields) {
+      const field = currField.field;
+      const defaultValue = currField.defaultValue;
+      let fieldValue = payloadInput[field] && !Number.isNaN(payloadInput[field]) ? parseInt(payloadInput[field] + "") : defaultValue;
+      fieldValue = fieldValue > 0 ? fieldValue : 1;
+      parsedPayload[`${field}`] = fieldValue;
+  }
+  return parsedPayload;
 }

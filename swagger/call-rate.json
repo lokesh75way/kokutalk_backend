@@ -1,43 +1,55 @@
 {
     "tags": [
       {
-        "name": "Contact",
-        "description": "API for contact CRUD operations."
+        "name": "Call Rate",
+        "description": "API for call rate CRUD operations."
       }
     ],
     "components": {
       "schemas": {
-        "ContactResponseSchema": {
+        "CallRateResponseSchema": {
           "type": "object",
           "properties": {
             "_id": {
               "type": "string",
               "example": "666968c3bb67a71a9b27fe57"
             },
-            "firstName": {
-              "type": "string",
-              "example": "first name"
-            },
-            "lastName": {
-                "type": "string",
-                "example": "last name"
-            },
-            "phoneNumber": {
-              "type": "string",
-              "example": "3409129812"
-            },
-            "countryCode": {
+            "fromCountryCode": {
               "type": "string",
               "example": "+91"
+            },
+            "fromCountryName": {
+                "type": "string",
+                "example": "India"
+            },
+            "toCountryCode": {
+              "type": "string",
+              "example": "+91"
+            },
+            "toCountryName": {
+                "type": "string",
+                "example": "India"
+            },
+            "duration": {
+                "type": "number",
+                "example": 1
+            },
+            "tax": {
+                "type": "number",
+                "example": 0
+            },
+            "durationUnit": {
+                "type": "string",
+                "enum": ["MINUTE", "SECOND", "HOUR"]
             },
             "status": {
               "type": "string",
               "example": ""
             },
-            "sid": {
+            "currency": {
                 "type": "string",
-                "example": ""
-              },
+                "enum": ["USD", "INR"]
+            },
             "isDeleted": {
               "type": "boolean",
               "example": false
@@ -73,11 +85,11 @@
       }
     },
     "paths": {
-      "/contacts": {
+      "/call-rates": {
         "post": {
-          "summary": "Add contact of user",
-          "description": "Endpoint to add contact",
-          "tags": ["Contact"],
+          "summary": "Add call rate",
+          "description": "Endpoint to add call rate",
+          "tags": ["Call Rate"],
           "security": [{ "bearerAuth": [] }],
           "requestBody": {
             "required": true,
@@ -86,12 +98,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "phoneNumber": { "type": "string" },
-                    "countryCode": { "type": "string" },
-                    "firstName": { "type": "string" },
-                    "lastName": { "type": "string" }
+                    "fromCountryCode": { "type": "string" },
+                    "fromCountryName": { "type": "string" },
+                    "toCountryCode": { "type": "string" },
+                    "toCountryName": { "type": "string" },
+                    "price": { "type": "number" },
+                    "tax": { "type": "number" },
+                    "duration": { "type": "number" },
+                    "durationUnit": { "type": "string" },
+                    "currency": { "type": "string" }
                   },
-                  "required": ["phoneNumber", "countryCode", "firstName"]
+                  "required": ["fromCountryCode", "fromCountryName", "toCountryCode", "toCountryName", "price"]
                 }
               }
             }
@@ -110,12 +127,12 @@
                       },
                       "message": {
                         "type": "string",
-                        "example": "Contact added successfully"
+                        "example": "Call rate added successfully"
                       },
                       "data": {
                         "type": "object",
                         "properties": {
-                            "contact": { "$ref": "#/components/schemas/ContactResponseSchema" }
+                            "callRate": { "$ref": "#/components/schemas/CallRateResponseSchema" }
                         }
                       }
                     }
@@ -145,6 +162,17 @@
                   }
                 }
             },
+            "403":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/AuthorizationErrorResponseSchema"
+                  }
+                }
+              }
+            },
             "404":  {
               "description": "",
               "content": {
@@ -170,65 +198,65 @@
           }
         },
         "get": {
-            "summary": "Get contact list of user",
-            "description": "Endpoint to get contact list of user",
-            "tags": ["Contact"],
+            "summary": "Get call rate list",
+            "description": "Endpoint to get call rate list",
+            "tags": ["Call Rate"],
             "security": [{ "bearerAuth": [] }],
             "parameters": [
                 {
-                  "name": "firstName",
+                  "name": "fromCountryCode",
                   "in": "query",
-                  "description": "First name of the contact to search",
+                  "description": "Country code of call rate source to search",
                   "schema": {
                     "type": "string",
-                    "example": "name"
+                    "example": "+91"
                   }
                 },
                 {
-                    "name": "lastName",
+                    "name": "fromCountryName",
                     "in": "query",
-                    "description": "Last name of the contact to search",
-                    "schema": {
-                      "type": "string",
-                      "example": "name"
-                    }
-                },
-                {
-                    "name": "phoneNumber",
-                    "in": "query",
-                    "description": "Phone number of the contact to search",
-                    "schema": {
-                      "type": "string",
-                      "example": "923409890123"
-                    }
-                },
-                {
-                    "name": "countryCode",
-                    "in": "query",
-                    "description": "Country code of the contact to search",
+                    "description": "Country name of call rate source to search",
                     "schema": {
                       "type": "string",
                       "example": "+91"
                     }
                 },
                 {
-                  "name": "pageIndex",
-                  "in": "query",
-                  "description": "Index of page to search",
-                  "schema": {
-                    "type": "any",
-                    "example": "1"
-                  }
-                },
-                {
-                      "name": "pageSize",
+                    "name": "toCountryCode",
+                    "in": "query",
+                    "description": "Country code of call rate destination to search",
+                    "schema": {
+                      "type": "string",
+                      "example": "+91"
+                    }
+                  },
+                  {
+                      "name": "toCountryName",
                       "in": "query",
-                      "description": "Number of entries to return in one page",
+                      "description": "Country name of call rate destination to search",
                       "schema": {
+                        "type": "string",
+                        "example": "+91"
+                      }
+                  },
+                  {
+                    "name": "pageIndex",
+                    "in": "query",
+                    "description": "Index of page to search",
+                    "schema": {
                       "type": "any",
                       "example": "1"
-                      }
-                }
+                    }
+                  },
+                  {
+                        "name": "pageSize",
+                        "in": "query",
+                        "description": "Number of entries to return in one page",
+                        "schema": {
+                        "type": "any",
+                        "example": "1"
+                        }
+                  }
             ],
             "responses": {
               "200": {
@@ -244,15 +272,15 @@
                         },
                         "message": {
                           "type": "string",
-                          "example": "Contact list fetched succesfully"
+                          "example": "Call rate list fetched succesfully"
                         },
                         "data": {
                           "type": "object",
                           "properties": {
-                              "contact": { 
+                              "callRates": { 
                                 "type": "array",
                                 "items": {
-                                  "$ref": "#/components/schemas/ContactResponseSchema" } 
+                                  "$ref": "#/components/schemas/CallRateResponseSchema" } 
                                 },
                                 "totalCount": { "type": "number", "example": 1 },
                                 "pageCount": { "type": "number", "example": 1 },
@@ -315,18 +343,18 @@
         }
       },
   
-      "/contacts/{id}": {
+      "/call-rates/{id}": {
         "put": {
-          "summary": "Edit contact by id",
-          "description": "Endpoint to update contact",
-          "tags": ["Contact"],
+          "summary": "Edit call rate by id",
+          "description": "Endpoint to update call rate",
+          "tags": ["Call Rate"],
           "security": [{ "bearerAuth": [] }],
           "parameters": [
             {
               "name": "id",
               "in": "path",
               "required": true,
-              "description": "ID of the contact to be updated",
+              "description": "ID of the call rate to be updated",
               "schema": {
                 "type": "string",
                 "example": "60d0fe4f5311236168a109ca"
@@ -340,12 +368,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "phoneNumber": { "type": "string" },
-                    "countryCode": { "type": "string" },
-                    "firstName": { "type": "string" },
-                    "lastName": { "type": "string" }
+                    "fromCountryCode": { "type": "string" },
+                    "fromCountryName": { "type": "string" },
+                    "toCountryCode": { "type": "string" },
+                    "toCountryName": { "type": "string" },
+                    "price": { "type": "number" },
+                    "tax": { "type": "number" },
+                    "duration": { "type": "number" },
+                    "durationUnit": { "type": "string" },
+                    "currency": { "type": "string" }
                   },
-                  "required": ["phoneNumber", "countryCode", "firstName"]
+                  "required": ["fromCountryCode", "fromCountryName", "toCountryCode", "toCountryName", "price"]
                 }
               }
             }
@@ -364,12 +397,12 @@
                       },
                       "message": {
                         "type": "string",
-                        "example": "Contact updated successfully"
+                        "example": "Call rate updated succesfully"
                       },
                       "data": {
                         "type": "object",
                         "properties": {
-                            "contact": { "$ref": "#/components/schemas/ContactResponseSchema" }
+                            "callRate": { "$ref": "#/components/schemas/CallRateResponseSchema" }
                         }
                       }
                     }
@@ -399,6 +432,17 @@
                   }
                 }
             },
+            "403":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/AuthorizationErrorResponseSchema"
+                  }
+                }
+              }
+            },
             "404":  {
               "description": "",
               "content": {
@@ -424,16 +468,16 @@
           }
         },
         "get": {
-            "summary": "Get contact by id",
-            "description": "Endpoint to get contact by id",
-            "tags": ["Contact"],
+            "summary": "Get call rate by id",
+            "description": "Endpoint to get call rate by id",
+            "tags": ["Call Rate"],
             "security": [{ "bearerAuth": [] }],
             "parameters": [
               {
                 "name": "id",
                 "in": "path",
                 "required": true,
-                "description": "ID of the contact to fetch",
+                "description": "ID of the call rate to fetch",
                 "schema": {
                   "type": "string",
                   "example": "60d0fe4f5311236168a109ca"
@@ -454,12 +498,12 @@
                         },
                         "message": {
                           "type": "string",
-                          "example": "Contact detail fetched successfully"
+                          "example": "Call rate detail fetched successfully"
                         },
                         "data": {
                           "type": "object",
                           "properties": {
-                              "contact": { "$ref": "#/components/schemas/ContactResponseSchema" }
+                              "callRate": { "$ref": "#/components/schemas/CallRateResponseSchema" }
                           }
                         }
                       }
@@ -514,16 +558,16 @@
             }
         },
         "delete": {
-            "summary": "Delete contact by id",
-            "description": "Endpoint to delete contact by id",
-            "tags": ["Contact"],
+            "summary": "Delete call rate by id",
+            "description": "Endpoint to delete call rate by id",
+            "tags": ["Call Rate"],
             "security": [{ "bearerAuth": [] }],
             "parameters": [
               {
                 "name": "id",
                 "in": "path",
                 "required": true,
-                "description": "ID of the contact to delete",
+                "description": "ID of the call rate to delete",
                 "schema": {
                   "type": "string",
                   "example": "60d0fe4f5311236168a109ca"
@@ -544,12 +588,12 @@
                         },
                         "message": {
                           "type": "string",
-                          "example": "Contact deleted successfully"
+                          "example": "Call Rate deleted successfully"
                         },
                         "data": {
                           "type": "object",
                           "properties": {
-                              "contact": { "$ref": "#/components/schemas/ContactResponseSchema" }
+                              "callRate": { "$ref": "#/components/schemas/CallRateResponseSchema" }
                           }
                         }
                       }
@@ -578,6 +622,17 @@
                       }
                     }
                   }
+              },
+              "403":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/AuthorizationErrorResponseSchema"
+                  }
+                }
+              }
               },
               "404":  {
                 "description": "",

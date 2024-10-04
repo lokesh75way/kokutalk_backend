@@ -1,5 +1,6 @@
 import mongoose, { Types } from "mongoose";
 import { BaseSchema } from ".";
+import { CURRENCY } from "./Payment";
 
 const Schema = mongoose.Schema;
 
@@ -15,11 +16,9 @@ export enum Service {
 export interface ICredit extends BaseSchema {
   totalAmount: number,
   remainingAmount: number,
-  expireAt: Date,
+  expireAt?: Date | null,
   usedBy: Types.ObjectId,
-  sentBy?: Types.ObjectId | null, 
-  service: string,
-  serviceUserId: string, 
+  sentBy?: Types.ObjectId | null,
   currency: string,
   isDeleted: boolean,
   status ?: string | null,
@@ -30,13 +29,11 @@ const CreditSchema = new Schema<ICredit>(
   {
     totalAmount : {type : Number, required: true, default: 0 } ,
     remainingAmount :  { type: Number, required: true, default: 0 },
-    expireAt : {type : Date, required: true },
+    expireAt : {type : Date, default: null },
     usedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
     sentBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
     status: { type: String },
-    service: { type: String, required: true, default: Service.PAYPAL },
-    serviceUserId: { type: String, required: true },
-    currency: { type: String, required: true, default: Currency.USD },
+    currency: { type: String, required: true, enum: Object.values(CURRENCY), default: Currency.USD },
     isDeleted : {type : Boolean , required: true, default : false } ,
     deletedAt : {type : Date } 
   },
