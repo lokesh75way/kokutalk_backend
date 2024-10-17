@@ -15,7 +15,9 @@ import { addContact, updateContact, getContact } from "../helper/validations/con
 import { makeCall, updateCall } from "../helper/validations/call";
 import { getNotification } from "../helper/validations/notification";
 import { getCredit } from "../helper/validations/credit";
-import { adminRegister, adminLogin } from "../helper/validations/admin";
+import { adminRegister, adminLogin, adminUpdate, adminChangePassword, adminForgotPassword,
+  adminResetPassword, adminVerifyOtp
+ } from "../helper/validations/admin";
 import { addCallRate, updateCallRate, getCallRate } from "../helper/validations/call-rate";
 import { addPayment, getPayment } from "../helper/validations/payment";
 
@@ -62,6 +64,21 @@ export const validate = (validationName: string): any[] => {
     }
     case "admin:login": {
       return [adminLogin]
+    }
+    case "admin:proffile-update": {
+      return [adminUpdate]
+    }
+    case "admin:change-password": {
+      return [adminChangePassword]
+    }
+    case "admin:forgot-password": {
+      return [adminForgotPassword]
+    }
+    case "admin:reset-password": {
+      return [adminResetPassword]
+    }
+    case "admin:verify-otp": {
+      return [adminVerifyOtp]
     }
     case "call-rate:add": {
       return [addCallRate];

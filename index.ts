@@ -13,6 +13,7 @@ import creditRoutes from "./app/routes/credit";
 import adminRoutes from "./app/routes/admin";
 import callRateRoutes from "./app/routes/call-rate";
 import paymentRoutes from "./app/routes/payment";
+import fileRoutes from "./app/routes/fileUpload";
 import { IUser } from "./app/schema/User";
 import { loadConfig } from "./app/helper/config";
 import swaggerUi from 'swagger-ui-express';
@@ -33,7 +34,8 @@ declare global {
   namespace Express {
     interface User extends Omit<IUser, "otp invitedBy card password"> {
       email?: string,
-      password?: string
+      password?: string,
+      profileImage?: string
     }
     interface Request {
       user?: User;
@@ -152,7 +154,8 @@ const initApp = async (): Promise<void> => {
     })
   );
 
-
+  const env = process.env.NODE_ENV || "development";
+  const documentPath = env == "local" ? __dirname : __dirname + "../..";
   // routes
   router.use("/users", userRoutes);
   router.use("/contacts", contactRoutes)
@@ -162,6 +165,9 @@ const initApp = async (): Promise<void> => {
   router.use("/admins", adminRoutes);
   router.use("/call-rates", callRateRoutes);
   router.use("/payments", paymentRoutes);
+  router.use("/file", fileRoutes);
+
+  router.use("/documents", express.static(documentPath + "/documents/"));
   router.use('/docs', swaggerUi.serve, swaggerUi.setup(mergedSwagger));
 
   // error handler

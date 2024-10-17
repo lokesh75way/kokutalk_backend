@@ -174,7 +174,8 @@ export const createAdminToken = async (
       allowEmailNotification : user.allowEmailNotification,
       createdAt : user.createdAt,
       updatedAt : user.updatedAt,
-      email: (user as IAdmin)?.email
+      email: (user as IAdmin)?.email,
+      profileImage: (user as IAdmin)?.profileImage
     },
   };
   const accessToken = jwt.sign(payload, jwtSecret, {expiresIn: accessTokenExpiresIn });

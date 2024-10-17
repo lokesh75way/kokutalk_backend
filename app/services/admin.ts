@@ -2,6 +2,12 @@ import createHttpError from "http-errors";
 import bcrypt from "bcrypt";
 import Token, { TokenType } from "../schema/Token";
 import Admin, { IAdmin } from "../schema/Admin";
+import { isValidPassword } from "./passport-jwt";
+
+export interface PasswordUpdate {
+  oldPassword: string;
+  newPassword: string;
+}
 
 export const hashPassword = async (password: string) => {
     const hash = await bcrypt.hash(password, 12);
@@ -43,7 +49,7 @@ export const getAdminByEmail = async (email: string) => {
 /**
  * * Function to get admin by token data if token matches
  */
-export const matchAdminToken = async(token:string, type: TokenType.PasswordReset | TokenType.OtpVerification | TokenType.Access)  => {
+export const matchAdminToken = async(token:string, email: string, type: TokenType.PasswordReset | TokenType.OtpVerification | TokenType.Access)  => {
   try {
     const result = await Token.aggregate([ 
         {
@@ -63,6 +69,7 @@ export const matchAdminToken = async(token:string, type: TokenType.PasswordReset
         {
           $match : {
             "adminDetails.isDeleted" : false,
+            "adminDetails.email": email
           }
         },
         {
@@ -96,4 +103,29 @@ export const updateAdmin = async (adminId: string, data: Partial<IAdmin>) => {
     } catch (error: any) {
       throw createHttpError(error?.status || 500, { message: error?.message || "Something went wrong in updating admin" });
     }
+};
+
+export const updateAdminPassword = async (adminId: string, data: PasswordUpdate) => {
+  try {
+    const userData = await getAdminById(adminId);
+    const passwordMatch = await isValidPassword(data.oldPassword?.trim(), userData?.password || "");
+    if (!passwordMatch) {
+      throw createHttpError(400, { message: "Current password mismatch" });
+    }
+    if (!data.newPassword.trim()) {
+      throw createHttpError(400, { message: "New password must have some value" });
+    }
+    if (data.newPassword.trim() == data.oldPassword.trim()) {
+      throw createHttpError(400, { message: "New password can't be same as current password" });
+    }
+    const admin = await Admin.findOneAndUpdate({ _id: adminId, isDeleted: false},
+      { $set: { password: data.newPassword.trim() } }, 
+      {
+        new: true,
+        projection: "-password -passwordResetToken",
+    }).lean().exec();
+    return admin;
+  } catch (error: any) {
+    throw createHttpError(error?.status || 500, { message: error?.message || "Something went wrong in updating admin pasword" });
+  }
 };

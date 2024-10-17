@@ -16,12 +16,13 @@ export interface IAdmin extends BaseSchema {
   allowSmsNotification: boolean;
   allowEmailNotification: boolean;
   status ?: string | null;
-  deletedAt ?: Date ; 
+  deletedAt ?: Date ;
+  profileImage?: string; 
 }
 
 const AdminSchema = new Schema<IAdmin>(
   {
-    name : {type : String } ,
+    name : {type : String, default: "" } ,
     phoneNumber :  { type: String, default: "" },
     countryCode :  { type: String, default: "" },
     email :  { type: String, required: true },
@@ -32,6 +33,7 @@ const AdminSchema = new Schema<IAdmin>(
     termsAgreed : {type : Boolean, required: true, default : true } ,
     allowSmsNotification : {type : Boolean, required: true, default : true } ,
     allowEmailNotification : {type : Boolean, required: true, default : true } ,
+    profileImage: { type: String, default: "" },
     deletedAt : {type : Date}
   },
   { timestamps: true }
