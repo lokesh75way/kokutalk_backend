@@ -2,7 +2,7 @@ import express from "express";
 import expressAsyncHandler from "express-async-handler";
 import { createResponse } from "../helper/response";
 import { catchError, validate } from "../middleware/validation";
-import { authMiddleware } from "../middleware/auth";
+import { authMiddleware, ROLE } from "../middleware/auth";
 import { getCallLog, makeCall, updateCallStatus } from "../services/call";
 import twilio from "twilio";
 
@@ -35,10 +35,16 @@ router.post(
 
 router.get(
   "/log",
-  authMiddleware,                            
+  authMiddleware,
+  validate("call:get"),                            
   catchError,
   expressAsyncHandler(async (req, res) => {
-    const userId =  req?.user?._id || "";
+    let userId =  req?.user?._id || "";
+    const userRole = (req?.user as any)?.role || "";
+    const userToSearch = (req.query.userId as string) || "";
+    if(userRole ==ROLE.ADMIN && userToSearch) {
+      userId = userToSearch;
+    } 
     const response = await getCallLog(userId, req.query);
     res.send(createResponse(response, "Call logs fetched successfully"));
   })

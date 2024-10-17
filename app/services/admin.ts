@@ -3,10 +3,37 @@ import bcrypt from "bcrypt";
 import Token, { TokenType } from "../schema/Token";
 import Admin, { IAdmin } from "../schema/Admin";
 import { isValidPassword } from "./passport-jwt";
+import moment from "moment-timezone";
+import User from "../schema/User";
+import Payment, { PaymentTransactionStatus } from "../schema/Payment";
+import Call from "../schema/Call";
+import { escapeRegex, parsePagination, parsePayload } from "../helper/common";
 
 export interface PasswordUpdate {
   oldPassword: string;
   newPassword: string;
+}
+
+interface DashboardPayload {
+  pageIndex?: string | number | null;
+  pageSize?: string | number | null;
+  from?: string | null;
+  to?: string | null;
+  name?: string | null;
+  phoneNumber?: string | null;
+  countryCode?: string | null;
+}
+
+interface CustomerPayload {
+  userId?: string | null;
+  pageIndex?: string | number | null;
+  pageSize?: string | number | null;
+  from?: string | null;
+  to?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  phoneNumber?: string | null;
+  countryCode?: string | null;
 }
 
 export const hashPassword = async (password: string) => {
@@ -127,5 +154,83 @@ export const updateAdminPassword = async (adminId: string, data: PasswordUpdate)
     return admin;
   } catch (error: any) {
     throw createHttpError(error?.status || 500, { message: error?.message || "Something went wrong in updating admin pasword" });
+  }
+};
+
+export const getAdminDashboard = async (adminId: string, payload: Partial<DashboardPayload>) => {
+  try {
+    const dateSearch: any = { };
+    if(payload.from) {
+      const startDateTime = moment(payload.from).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).format();
+      dateSearch["createdAt"] = { $gte: startDateTime };
+    }
+
+    if(payload.to) {
+        const endDateTime = moment(payload.to).set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).format();
+        dateSearch["createdAt"] = { ...dateSearch["createdAt"], $lte: endDateTime };
+    }
+
+    const users = await User.find({ isDeleted: false, ...dateSearch }).countDocuments();
+
+    let paymentDetail = await Payment.aggregate([
+      { $match: { isDeleted: false, status: PaymentTransactionStatus.SUCCESS, ...dateSearch } },
+      { $group: { _id: null, amount: { $sum: "$amount"} } },
+    ]);
+
+    paymentDetail = paymentDetail[0];
+
+    const calls = await Call.find( { ...dateSearch }).countDocuments();
+
+    return { customers: users, payment: (paymentDetail as any)?.amount || 0, calls }
+
+  } catch (error: any) {
+    throw createHttpError(error?.status || 500, { message: error?.message || "Something went wrong in fetching admin dashboard data" });
+  }
+};
+
+export const getCustomers = async (adminId: string, payload: Partial<CustomerPayload>) => {
+  try {
+    const pageFields = [{field: "pageIndex", defaultValue: 1}, {field: "pageSize", defaultValue: 10}]
+    const { pageIndex: pageIndexToSearch, pageSize: pageSizeToSearch } = parsePagination(JSON.stringify(payload), pageFields)
+    const skipedUser = (pageIndexToSearch - 1)*pageSizeToSearch;
+        
+
+    let userSearch:any = { 
+        isDeleted: false
+    }
+
+    const parsePayloadFields = ["firstName", "lastName", "phoneNumber", "countryCode"];
+    const parsedPayload = parsePayload(JSON.stringify(payload), parsePayloadFields);
+    userSearch = { ...userSearch, ...parsedPayload };
+
+    const dateSearch: any = { };
+
+    if(payload.from) {
+      const startDateTime = moment(payload.from).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).format();
+      dateSearch["createdAt"] = { $gte: startDateTime };
+    }
+
+    if(payload.to) {
+        const endDateTime = moment(payload.to).set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).format();
+        dateSearch["createdAt"] = { ...dateSearch["createdAt"], $lte: endDateTime };
+    }
+
+    const userCount = await User.find({...userSearch, ...dateSearch }).countDocuments();
+
+    const users = await User.find({...userSearch, ...dateSearch },
+      { otp: 0 }
+    )
+    .sort({ createdAt: -1 })
+    .skip(skipedUser)
+    .limit(pageSizeToSearch)
+    .populate("credit")
+    .lean().exec();
+
+    return { customers: users, totalCount: userCount, pageCount: Math.ceil(userCount/pageSizeToSearch),
+      pageIndex: pageIndexToSearch, pageSize: pageSizeToSearch, count: users.length
+    };
+
+  } catch (error: any) {
+    throw createHttpError(error?.status || 500, { message: error?.message || "Something went wrong in fetching customer data" });
   }
 };

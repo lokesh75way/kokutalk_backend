@@ -146,4 +146,30 @@ router.put(
   })
 )
 
+router.get(
+  "/dashboard",
+  authMiddleware,
+  checkPermission([ROLE.ADMIN]),
+  validate("admin:dashboard"),
+  catchError,
+  expressAsyncHandler(async (req, res) => {
+    const adminId =  req?.user?._id || "";
+    const dashboard = await AdminService.getAdminDashboard(adminId, req.query);
+    res.send(createResponse(dashboard, "Admin dashboard data fetched successfully"));
+  })
+)
+
+router.get(
+  "/customers",
+  authMiddleware,
+  checkPermission([ROLE.ADMIN]),
+  validate("admin:dashboard"),
+  catchError,
+  expressAsyncHandler(async (req, res) => {
+    const adminId =  req?.user?._id || "";
+    const customer = await AdminService.getCustomers(adminId, req.query);
+    res.send(createResponse(customer, "Customer data fetched successfully"));
+  })
+)
+
 export default router;

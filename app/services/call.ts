@@ -11,6 +11,7 @@ import CallRate, { DurationUnit } from "../schema/CallRate";
 import { calculatePrice } from "../helper/common";
 import mongoose from "mongoose";
 import { escapeRegex } from "../helper/common";
+import moment from "moment-timezone";
 
 loadConfig();
 
@@ -33,6 +34,9 @@ interface CallLogPayload {
   countryCode?: string | null;
   pageIndex?: string | number | null;
   pageSize?: string | number | null;
+  from?: string | null;
+  to?: string | null;
+  userId?: string | null;
 }
 
 
@@ -389,10 +393,22 @@ export const getCallLog = async (userId: string, payload: CallLogPayload) => {
       callSearch["$and"].push({ "$or": searchQuery })
     }
 
-    const callCount = await Call.find(callSearch).countDocuments();
+    const dateSearch: any = { };
+
+    if(payload.from) {
+      const startDateTime = moment(payload.from).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).format();
+      dateSearch["createdAt"] = { $gte: startDateTime };
+    }
+
+    if(payload.to) {
+        const endDateTime = moment(payload.to).set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).format();
+        dateSearch["createdAt"] = { ...dateSearch["createdAt"], $lte: endDateTime };
+    }
+
+    const callCount = await Call.find({...callSearch, ...dateSearch}).countDocuments();
 
     const calls = await Call.aggregate([
-      { $match: callSearch},
+      { $match: {...callSearch, ...dateSearch} },
       { $sort: { createdAt: -1 } },
       { $skip: skipedCall },
       { $limit: pageSizeToSearch },

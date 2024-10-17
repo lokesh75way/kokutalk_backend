@@ -1,4 +1,5 @@
-import { body, checkExact } from "express-validator";
+import { body, checkExact, query } from "express-validator";
+import mongoose from "mongoose";
 
 export const adminRegister = checkExact([
   body('name')
@@ -174,3 +175,49 @@ export const adminVerifyOtp = checkExact([
     .bail()
     .withMessage('Otp must have some value'),
 ])
+
+export const adminDashboard = checkExact([
+  query("pageIndex").optional(),
+  query("pageSize").optional(),
+  query("from")
+    .optional()
+    .isDate({format: "yyyy-mm-dd"})
+    .bail()
+    .withMessage("From must be a date in yyyy-mm-dd format"),
+  query("to")
+    .optional()
+    .isDate({format: "yyyy-mm-dd"})
+    .bail()
+    .withMessage("To must be a date in yyyy-mm-dd format"),
+]);
+
+export const getCustomer = checkExact([
+  query("pageIndex").optional(),
+  query("pageSize").optional(),
+  query("from")
+    .optional()
+    .isDate({format: "yyyy-mm-dd"})
+    .bail()
+    .withMessage("From must be a date in yyyy-mm-dd format"),
+  query("to")
+    .optional()
+    .isDate({format: "yyyy-mm-dd"})
+    .bail()
+    .withMessage("To must be a date in yyyy-mm-dd format"),
+    query("firstName").optional()
+    .isString()
+    .bail()
+    .withMessage("First name must be a string"),
+  query("lastName").optional()
+    .isString()
+    .bail()
+    .withMessage("Last name must be a string"),
+  query("phoneNumber").optional()
+    .isString()
+    .bail()
+    .withMessage("Phone number must be a string"),
+  query("countryCode").optional()
+    .isString()
+    .bail()
+    .withMessage("Country code must be a string"),
+]);

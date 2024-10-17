@@ -1,0 +1,1048 @@
+{
+    "tags": [
+      {
+        "name": "Admin",
+        "description": "API for admin CRUD operations."
+      }
+    ],
+    "components": {
+      "securitySchemes": {
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      },
+      "schemas": {
+        "AdminResponseSchema": {
+          "type": "object",
+          "properties": {
+            "_id": {
+              "type": "string",
+              "example": "666968c3bb67a71a9b27fe57"
+            },
+            "firstName": {
+              "type": "string",
+              "example": "user name"
+            },
+            "lastName": {
+              "type": "string",
+              "example": "last name"
+            },
+            "email": {
+              "type": "string",
+              "example": "noreply@gmail.com"
+            },
+            "profileImage": {
+              "type": "string",
+              "example": ""
+            },
+            "userName": {
+              "type": "string",
+              "example": ""
+            },
+            "status": {
+              "type": "string",
+              "example": ""
+            },
+            "isDeleted": {
+              "type": "boolean",
+              "example": false
+            },
+            "termsAgreed": {
+              "type": "boolean",
+              "example": true
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2024-06-18T09:22:11.200Z"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2024-06-18T12:23:40.803Z"
+            },
+            "__v": {
+              "type": "number",
+              "example": 0
+            }
+          }
+        }
+      }
+    },
+    "paths": {
+      "/admins/login": {
+        "post": {
+          "tags": ["Admin"],
+          "summary": "Login to admin account",
+          "description": "Endpoint to login to admin account",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "email": { "type": "string", "example": "noreply@gmail.com" },
+                    "password": { "type": "string", "example": "1235&*0912" }
+                  },
+                  "required": ["email", "password"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": { "type": "boolean", "example": true },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "message": { "type": "string", "example": "Login successful for admin" },
+                          "accessToken": { "type": "string",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7Il9pZCI6IjY2Njk2OGMzYmI2N2E3MWE5YjI3ZmU1NyIsInJvbGUiOnsiX2lkIjoiNjY2YWQ1NjgwOTk0YjRjZDg5OTg4MGViIiwibmFtZSI6IlNVUEVSX0FETUlOIn19LCJpYXQiOjE3MTg3MDcxMzR9.6iSmTmrGtun6D-N8iYLq5kLdtDdpShfEVAKEZKVaV78" },
+                          "refreshToken": { "type": "string",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7Il9pZCI6IjY2Njk2OGMzYmI2N2E3MWE5YjI3ZmU1NyIsInJvbGUiOnsiX2lkIjoiNjY2YWQ1NjgwOTk0YjRjZDg5OTg4MGViIiwibmFtZSI6IlNVUEVSX0FETUlOIn19LCJpYXQiOjE3MTg3MDcxMzR9.6iSmTmrGtun6D-N8iYLq5kLdtDdpShfEVAKEZKVaV78" },
+                          "user": { "$ref": "#/components/schemas/AdminResponseSchema" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/BadRequestSchema"
+                  }
+                }
+              }
+            },
+            "404":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "",
+              "content": {
+                "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/ErrorResponseSchema"
+                    }
+                }
+              }
+            }
+          }
+        }
+      },
+  
+      "/admins/change-password": {
+        "put": {
+          "tags": ["Admin"],
+          "summary": "Change password of admin",
+          "description": "Endpoint to update admin password",
+          "security": [{ "bearerAuth": [] }],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "oldPassword": { "type": "string" },
+                    "newPassword": { "type": "string" }
+                  },
+                  "required": ["oldPassword", "newPassword"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": { "type": "boolean", "example": true },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "message": { "type": "string", "example": "Admin password changed successfully" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/BadRequestSchema"
+                  }
+                }
+              }
+            },
+            "401":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                  }
+                }
+              }
+            },
+            "403":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/AuthorizationErrorResponseSchema"
+                  }
+                }
+              }
+            },
+            "404":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "",
+              "content": {
+                "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/ErrorResponseSchema"
+                    }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "/admins/forgot-password": {
+        "post": {
+          "tags": ["Admin"],
+          "summary": "Forgot password of admin",
+          "description": "Endpoint to receive otp for admin password reset",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "email": { "type": "string" }
+                  },
+                  "required": ["email"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": { "type": "boolean", "example": true },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "message": { "type": "string", "example": "Otp sent to admin email to reset password" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/BadRequestSchema"
+                  }
+                }
+              }
+            },
+            "404":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "",
+              "content": {
+                "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/ErrorResponseSchema"
+                    }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "/admins/reset-password": {
+        "post": {
+          "tags": ["Admin"],
+          "summary": "Reset password of admin",
+          "description": "Endpoint to reset admin password",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "email": { "type": "string" },
+                    "otp": { "type": "string" }
+                  },
+                  "required": ["email", "otp"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": { "type": "boolean", "example": true },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "message": { "type": "string", "example": "Admin Password reset successfully" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/BadRequestSchema"
+                  }
+                }
+              }
+            },
+            "404":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "",
+              "content": {
+                "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/ErrorResponseSchema"
+                    }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "/admins/profile": {
+        "put": {
+          "summary": "Edit admin profile",
+          "description": "Endpoint to update admin profile data",
+          "tags": ["Admin"],
+          "security": [{ "bearerAuth": [] }],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "profileImage": { "type": "string" }
+                  },
+                  "required": ["name"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Admin profile updated successfully"
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/BadRequestSchema"
+                  }
+                }
+              }
+            },
+            "401": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                    }
+                  }
+                }
+            },
+            "403": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthorizationErrorResponseSchema"
+                    }
+                  }
+                }
+            },
+            "404":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "",
+              "content": {
+                "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/ErrorResponseSchema"
+                    }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "/admins/verify-otp": {
+        "post": {
+          "tags": ["Admin"],
+          "summary": "Verify passsword reset otp  of admin",
+          "description": "Endpoint to verify passsword reset otp",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "otp": { "type": "string" },
+                    "email": { "type": "string" }
+                  },
+                  "required": ["otp", "email"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": { "type": "boolean", "example": true },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "message": { "type": "string", "example": "Otp verified successfully" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/BadRequestSchema"
+                  }
+                }
+              }
+            },
+            "404":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "",
+              "content": {
+                "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/ErrorResponseSchema"
+                    }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "/admins/refresh-token": {
+        "post": {
+          "tags": ["Admin"],
+          "security": [{ "bearerAuth": [] }],
+          "summary": "Refresh admin session token",
+          "description": "Endpoint to refresh admin session",
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": { "type": "boolean", "example": true },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "message": { "type": "string", "example": "Token refreshed successfully" },
+                          "accessToken": { "type": "string",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7Il9pZCI6IjY2Njk2OGMzYmI2N2E3MWE5YjI3ZmU1NyIsInJvbGUiOnsiX2lkIjoiNjY2YWQ1NjgwOTk0YjRjZDg5OTg4MGViIiwibmFtZSI6IlNVUEVSX0FETUlOIn19LCJpYXQiOjE3MTg3MDcxMzR9.6iSmTmrGtun6D-N8iYLq5kLdtDdpShfEVAKEZKVaV78" },
+                          "refreshToken": { "type": "string",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7Il9pZCI6IjY2Njk2OGMzYmI2N2E3MWE5YjI3ZmU1NyIsInJvbGUiOnsiX2lkIjoiNjY2YWQ1NjgwOTk0YjRjZDg5OTg4MGViIiwibmFtZSI6IlNVUEVSX0FETUlOIn19LCJpYXQiOjE3MTg3MDcxMzR9.6iSmTmrGtun6D-N8iYLq5kLdtDdpShfEVAKEZKVaV78" },
+                          "user": { "$ref": "#/components/schemas/AdminResponseSchema" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/BadRequestSchema"
+                  }
+                }
+              }
+            },
+            "401": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                    }
+                  }
+                }
+            },
+            "403": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/AuthorizationErrorResponseSchema"
+                  }
+                }
+              }
+            },
+            "404":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "",
+              "content": {
+                "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/ErrorResponseSchema"
+                    }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "/admins/logout": {
+        "post": {
+          "tags": ["Admin"],
+          "security": [{ "bearerAuth": [] }],
+          "summary": "Logout from admin session",
+          "description": "Endpoint to logout from admin session",
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": { "type": "boolean", "example": true },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "message": { "type": "string", "example": "Admin logged out succesfully" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/BadRequestSchema"
+                  }
+                }
+              }
+            },
+            "401": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                    }
+                  }
+                }
+            },
+            "403": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/AuthorizationErrorResponseSchema"
+                  }
+                }
+              }
+            },
+            "404":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "",
+              "content": {
+                "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/ErrorResponseSchema"
+                    }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "/admins/dashboard": {
+        "get": {
+          "tags": ["Admin"],
+          "security": [{ "bearerAuth": [] }],
+          "summary": "Admin dashboard",
+          "description": "Endpoint to get admin dashboard data",
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": { "type": "boolean", "example": true },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "message": { "type": "string", "example": "Admin dashboard data fetched succesfully" },
+                          "data": {
+                            "type": "object",
+                            "properties": {
+                              "customers": {
+                                "type": "number",
+                                "example": 10,
+                                "description": "Count of users"
+                              },
+                              "calls": {
+                                "type": "number",
+                                "example": 10,
+                                "description": "Count of calls"
+                              },
+                              "payment": {
+                                "type": "number",
+                                "example": 10,
+                                "description": "Total payment made"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/BadRequestSchema"
+                  }
+                }
+              }
+            },
+            "401": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                    }
+                  }
+                }
+            },
+            "403": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/AuthorizationErrorResponseSchema"
+                  }
+                }
+              }
+            },
+            "404":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "",
+              "content": {
+                "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/ErrorResponseSchema"
+                    }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "/admins/customers": {
+        "get": {
+          "tags": ["Admin"],
+          "security": [{ "bearerAuth": [] }],
+          "summary": "Customer Detail",
+          "description": "Endpoint to get custometr data",
+          "parameters": [
+                {
+                  "name": "firstName",
+                  "in": "query",
+                  "description": "First name of customer to search",
+                  "schema": {
+                    "type": "string",
+                    "example": "user"
+                  }
+                },
+                {
+                  "name": "lastName",
+                  "in": "query",
+                  "description": "Last name of customer to search",
+                  "schema": {
+                    "type": "string",
+                    "example": "user"
+                  }
+                },
+                {
+                    "name": "countryCode",
+                    "in": "query",
+                    "description": "Country code of customer to search",
+                    "schema": {
+                      "type": "string",
+                      "example": "+91"
+                    }
+                },
+                {
+                    "name": "phoneNumber",
+                    "in": "query",
+                    "description": "Phone number of customer to search",
+                    "schema": {
+                      "type": "string",
+                      "example": "98"
+                    }
+                },
+                {
+                  "name": "from",
+                  "in": "query",
+                  "description": "Start date of customer registration to search in mm-dd-yyyy format",
+                  "schema": {
+                    "type": "string",
+                    "example": "10-01-2024"
+                  }
+              },
+              {
+                "name": "to",
+                "in": "query",
+                "description": "Last date of customer registration to search in mm-dd-yyyy",
+                "schema": {
+                  "type": "string",
+                  "example": "10-01-2024"
+                }
+              },
+                  {
+                    "name": "pageIndex",
+                    "in": "query",
+                    "description": "Index of page to search",
+                    "schema": {
+                      "type": "any",
+                      "example": "1"
+                    }
+                  },
+                  {
+                        "name": "pageSize",
+                        "in": "query",
+                        "description": "Number of entries to return in one page",
+                        "schema": {
+                        "type": "any",
+                        "example": "1"
+                        }
+                  }
+            ],
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": { "type": "boolean", "example": true },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "message": { "type": "string", "example": "Customer data fetched succesfully" },
+                          "data": {
+                          "type": "object",
+                          "properties": {
+                              "customers": { 
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/components/schemas/UserResponseSchema" } 
+                                },
+                                "totalCount": { "type": "number", "example": 1 },
+                                "pageCount": { "type": "number", "example": 1 },
+                                "pageIndex": { "type": "number", "example": 1 },
+                                "pageSize": { "type": "number", "example": 10 },
+                                "count": { "type": "number", "example": 1 }
+                                
+                          }
+                        }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/BadRequestSchema"
+                  }
+                }
+              }
+            },
+            "401": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                    }
+                  }
+                }
+            },
+            "403": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/AuthorizationErrorResponseSchema"
+                  }
+                }
+              }
+            },
+            "404":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "",
+              "content": {
+                "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/ErrorResponseSchema"
+                    }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+}

@@ -307,6 +307,33 @@
                   }
               },
               {
+                "name": "from",
+                "in": "query",
+                "description": "Start date of call to search in mm-dd-yyyy format",
+                "schema": {
+                  "type": "string",
+                  "example": "10-01-2024"
+                }
+            },
+            {
+              "name": "to",
+              "in": "query",
+              "description": "Last date of call to search in mm-dd-yyyy",
+              "schema": {
+                "type": "string",
+                "example": "10-01-2024"
+              }
+            },
+              {
+                "name": "userId",
+                "in": "query",
+                "description": "Id of customer to search",
+                "schema": {
+                  "type": "string",
+                  "example": "66ffe4c6b75cc7b64f141e7f"
+                }
+              },
+              {
                   "name": "phoneNumber",
                   "in": "query",
                   "description": "Phone number of the caller/receiver to search",

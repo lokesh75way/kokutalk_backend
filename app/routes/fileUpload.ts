@@ -39,7 +39,7 @@ const upload = multer({storage});
 
 router.post(
   "/upload-single",
-  // authMiddleware,
+  authMiddleware,
   validate("file:file"),
   upload.single('file'),
   catchError,

@@ -12,11 +12,11 @@ import {
   getNumber
 } from "../helper/validations/user";
 import { addContact, updateContact, getContact } from "../helper/validations/contact";
-import { makeCall, updateCall } from "../helper/validations/call";
+import { makeCall, updateCall, getCall } from "../helper/validations/call";
 import { getNotification } from "../helper/validations/notification";
 import { getCredit } from "../helper/validations/credit";
 import { adminRegister, adminLogin, adminUpdate, adminChangePassword, adminForgotPassword,
-  adminResetPassword, adminVerifyOtp
+  adminResetPassword, adminVerifyOtp, adminDashboard, getCustomer
  } from "../helper/validations/admin";
 import { addCallRate, updateCallRate, getCallRate } from "../helper/validations/call-rate";
 import { addPayment, getPayment } from "../helper/validations/payment";
@@ -53,6 +53,9 @@ export const validate = (validationName: string): any[] => {
     case "call:update": {
       return [updateCall];
     }
+    case "call:get": {
+      return [getCall];
+    }
     case "notification:get": {
       return [getNotification];
     }
@@ -79,6 +82,12 @@ export const validate = (validationName: string): any[] => {
     }
     case "admin:verify-otp": {
       return [adminVerifyOtp]
+    }
+    case "admin:dashboard": {
+      return [adminDashboard]
+    }
+    case "admin:customer": {
+      return [getCustomer]
     }
     case "call-rate:add": {
       return [addCallRate];
