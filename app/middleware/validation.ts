@@ -13,7 +13,7 @@ import {
 } from "../helper/validations/user";
 import { addContact, updateContact, getContact } from "../helper/validations/contact";
 import { makeCall, updateCall, getCall } from "../helper/validations/call";
-import { getNotification } from "../helper/validations/notification";
+import { getNotification, sendNotification } from "../helper/validations/notification";
 import { getCredit } from "../helper/validations/credit";
 import { adminRegister, adminLogin, adminUpdate, adminChangePassword, adminForgotPassword,
   adminResetPassword, adminVerifyOtp, adminDashboard, getCustomer
@@ -58,6 +58,9 @@ export const validate = (validationName: string): any[] => {
     }
     case "notification:get": {
       return [getNotification];
+    }
+    case "notification:send": {
+      return [sendNotification];
     }
     case "credit:get": {
       return [getCredit];

@@ -24,11 +24,16 @@ router.post(
 router.get(
   "/",
   authMiddleware,
-  checkPermission([ROLE.USER]),
+  checkPermission([ROLE.USER, ROLE.ADMIN]),
   validate("payment:get"),
   catchError,
   expressAsyncHandler(async (req, res) => {
-    const userId =  req?.user?._id || "";
+    let userId =  req?.user?._id || "";
+    const userRole = (req?.user as any)?.role || "";
+    const userToSearch = (req.query.userId as string) || "";
+    if(userRole ==ROLE.ADMIN) {
+      userId = userToSearch ? userToSearch : "";
+    } 
     const data = await PaymentService.getPayment(userId, req.query);
     res.send(createResponse(data, "Payment history fetched succesfully"))
   })
@@ -37,11 +42,16 @@ router.get(
 router.get(
   "/:id",
   authMiddleware,
-  checkPermission([ROLE.USER]),
+  checkPermission([ROLE.USER, ROLE.ADMIN]),
   validateIdParam("id"),
   catchError,
   expressAsyncHandler(async (req, res) => {
-    const userId =  req?.user?._id || "";
+    let userId =  req?.user?._id || "";
+    const userRole = (req?.user as any)?.role || "";
+    const userToSearch = (req.query.userId as string) || "";
+    if(userRole ==ROLE.ADMIN) {
+      userId = userToSearch ? userToSearch : "";
+    }
     const paymentId: string = req.params.id;
     const data = await PaymentService.getPaymentById(userId, paymentId);
     res.send(createResponse(data, "Payment detail fetched successfully"))

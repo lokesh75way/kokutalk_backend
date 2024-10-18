@@ -14,21 +14,15 @@
               "type": "string",
               "example": "666968c3bb67a71a9b27fe57"
             },
-            "firstName": {
+            "caller": {
               "type": "string",
-              "example": "first name"
+              "description": "Id of caller",
+              "example": "666968c3bb67a71a9b27fe57"
             },
-            "lastName": {
-                "type": "string",
-                "example": "last name"
-            },
-            "phoneNumber": {
+            "receiver": {
               "type": "string",
-              "example": "3409129812"
-            },
-            "countryCode": {
-              "type": "string",
-              "example": "+91"
+              "description": "Id of receiver",
+              "example": "666968c3bb67a71a9b27fe57"
             },
             "status": {
               "type": "string",
@@ -38,7 +32,11 @@
                 "type": "string",
                 "example": ""
               },
-            "isDeleted": {
+            "isDeletedByCaller": {
+              "type": "boolean",
+              "example": false
+            },
+            "isDeletedByReceiver": {
               "type": "boolean",
               "example": false
             },
@@ -55,19 +53,8 @@
             "__v": {
               "type": "number",
               "example": 0
-            },
-            "userId": {
-                "type": "string",
-                "example": "666968c3bb67a71a9b27fe56"
-              },
-            "createdBy": {
-              "type": "string",
-              "example": "666968c3bb67a71a9b27fe56"
-            },
-            "updatedBy": {
-              "type": "string",
-              "example": "666968c3bb67a71a9b27fe58"
             }
+            
           }
         },
         "CallLogSchema": {
@@ -309,19 +296,19 @@
               {
                 "name": "from",
                 "in": "query",
-                "description": "Start date of call to search in mm-dd-yyyy format",
+                "description": "Start date of date range to search in yyyy-mm-dd format",
                 "schema": {
                   "type": "string",
-                  "example": "10-01-2024"
+                  "example": "2024-10-01"
                 }
             },
             {
               "name": "to",
               "in": "query",
-              "description": "Last date of call to search in mm-dd-yyyy",
+              "description": "Last date of date range to search in yyyy-mm-dd",
               "schema": {
                 "type": "string",
-                "example": "10-01-2024"
+                "example": "2024-10-01"
               }
             },
               {
@@ -390,6 +377,180 @@
                           "type": "object",
                           "properties": {
                               "log": { 
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/components/schemas/CallLogSchema" } 
+                                },
+                                "totalCount": { "type": "number", "example": 1 },
+                                "pageCount": { "type": "number", "example": 1 },
+                                "pageIndex": { "type": "number", "example": 1 },
+                                "pageSize": { "type": "number", "example": 10 },
+                                "count": { "type": "number", "example": 1 }
+                                
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/BadRequestSchema"
+                    }
+                  }
+                }
+              },
+              "401": {
+                  "description": "",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                      }
+                    }
+                  }
+              },
+              "404":  {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                    }
+                  }
+                }
+              },
+              "500": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/ErrorResponseSchema"
+                      }
+                  }
+                }
+              }
+            }
+        }
+      },
+
+      "/calls/": {
+        "get": {
+            "summary": "Get call history of customers",
+            "description": "Endpoint to get call history of customers",
+            "tags": ["Call"],
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+              {
+                "name": "firstName",
+                "in": "query",
+                "description": "First name of the caller/recciver to search",
+                "schema": {
+                  "type": "string",
+                  "example": "name"
+                }
+              },
+              {
+                  "name": "lastName",
+                  "in": "query",
+                  "description": "Last name of the caller/receiver to search",
+                  "schema": {
+                    "type": "string",
+                    "example": "name"
+                  }
+              },
+              {
+                "name": "from",
+                "in": "query",
+                "description": "Start date of date range to search in yyyy-mm-dd format",
+                "schema": {
+                  "type": "string",
+                  "example": "2024-10-01"
+                }
+            },
+            {
+              "name": "to",
+              "in": "query",
+              "description": "Last date of date range to search in yyyy-mm-dd",
+              "schema": {
+                "type": "string",
+                "example": "2024-10-01"
+              }
+            },
+              {
+                "name": "userId",
+                "in": "query",
+                "description": "Id of customer to search",
+                "schema": {
+                  "type": "string",
+                  "example": "66ffe4c6b75cc7b64f141e7f"
+                }
+              },
+              {
+                  "name": "phoneNumber",
+                  "in": "query",
+                  "description": "Phone number of the caller/receiver to search",
+                  "schema": {
+                    "type": "string",
+                    "example": "923409890123"
+                  }
+              },
+              {
+                  "name": "countryCode",
+                  "in": "query",
+                  "description": "Country code of the caller/receiver to search",
+                  "schema": {
+                    "type": "string",
+                    "example": "+91"
+                  }
+              },
+              {
+                "name": "pageIndex",
+                "in": "query",
+                "description": "Index of page to search",
+                "schema": {
+                  "type": "any",
+                  "example": "1"
+                }
+            },
+            {
+                "name": "pageSize",
+                "in": "query",
+                "description": "Number of entries to return in one page",
+                "schema": {
+                  "type": "any",
+                  "example": "1"
+                }
+            }
+          ],
+            "responses": {
+              "200": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Call logs fetched successfully"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                              "calls": { 
                                 "type": "array",
                                 "items": {
                                   "$ref": "#/components/schemas/CallLogSchema" } 

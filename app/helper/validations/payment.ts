@@ -1,5 +1,6 @@
 import { body, query, checkExact } from "express-validator";
 import { CURRENCY } from "../../schema/Payment";
+import mongoose from "mongoose";
 
 export const addPayment = checkExact([
   body("amount")
@@ -37,4 +38,21 @@ export const addPayment = checkExact([
 export const getPayment = checkExact([
   query("pageIndex").optional(),
   query("pageSize").optional(),
+  query("userId")
+    .optional()
+    .custom((value) => {
+      return mongoose.isObjectIdOrHexString(value);
+    })
+    .bail()
+    .withMessage("Invalid user Id"),
+  query("from")
+    .optional()
+    .isDate({format: "yyyy-mm-dd"})
+    .bail()
+    .withMessage("From must be a date in yyyy-mm-dd format"),
+  query("to")
+    .optional()
+    .isDate({format: "yyyy-mm-dd"})
+    .bail()
+    .withMessage("To must be a date in yyyy-mm-dd format"),
 ]);

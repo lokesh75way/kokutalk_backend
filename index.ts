@@ -58,7 +58,7 @@ const allowedOrigins: string[] = ["https://api.latecahub.com/kokutalk"];
 app.use(cors({
   maxAge: 84600,
   origin: (origin, next) => {
-    console.log("========Req origin", origin)
+    // console.log("========Req origin", origin)
     return next(null, true);
     // if (!origin) return next(null, true);
 

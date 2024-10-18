@@ -1,6 +1,9 @@
 import Notification, { INotification } from "../schema/Notification";
 import createHttpError from "http-errors";
 import { escapeRegex } from "../helper/common";
+import mongoose from "mongoose";
+import moment = require("moment-timezone");
+import User from "../schema/User";
 
 interface NotificationPayload {
     entityType?: string,
@@ -9,12 +12,15 @@ interface NotificationPayload {
     isSeen?: boolean,
     pageIndex?: string | number | null;
     pageSize?: string | number | null;
+    userId?: string | null;
+    from?: string | null;
+    to?: string | null;
 }
 
 export const saveNotification = async (userId: string, data: Partial<INotification>) => {
     try {
         const notification = await Notification.findOneAndUpdate(
-            { userId, entityTypeId: data.entityTypeId, 
+            { userId, entityType: data.entityType, entityTypeId: data.entityTypeId,
              isDeleted: false, isSeen: false,            },
             { $setOnInsert: {
               ...data, userId
@@ -34,12 +40,12 @@ export const saveNotification = async (userId: string, data: Partial<INotificati
 
 export const updateNotification = async (userId: string, notificationId: string, data: Partial<INotification>) => {
     try {
-        const contact = await Notification.findOneAndUpdate({ _id: notificationId, userId, isDeleted: false }, 
+        const notification = await Notification.findOneAndUpdate({ _id: notificationId, userId, isDeleted: false }, 
             { $set: { ...data, seenAt: new Date(Date.now()) } }, {
             new: true,
         }).lean().exec();
 
-        return { contact };
+        return { notification };
 
     } catch(error) {
         throw createHttpError(500, { message: "Something went wrong in updating notification." });
@@ -57,7 +63,12 @@ export const getNotification = async (userId: string, payload: NotificationPaylo
         const skipedNotification = (pageIndexToSearch - 1)*pageIndexToSearch;
 
         const notificationSearch:any = { 
-            userId, isDeleted: false, isSeen
+            isDeleted: false, 
+            // isSeen
+        }
+
+        if(mongoose.isObjectIdOrHexString(userId)) {
+            notificationSearch["userId"] = userId;
         }
 
         if(message) {
@@ -72,8 +83,21 @@ export const getNotification = async (userId: string, payload: NotificationPaylo
             notificationSearch["entityTypeId"] = new RegExp(escapeRegex(entityTypeId), 'i')
         }
 
-        const notificationCount = await Notification.find(notificationSearch).countDocuments();
-        const notifications = await Notification.find(notificationSearch).sort({ createdAt: -1 }).skip(skipedNotification).limit(pageSizeToSearch).lean().exec();
+        const dateSearch: any = { };
+
+        if(payload.from) {
+            const startDateTime = moment(payload.from).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).format();
+            dateSearch["createdAt"] = { $gte: startDateTime };
+        }
+      
+        if(payload.to) {
+            const endDateTime = moment(payload.to).set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).format();
+            dateSearch["createdAt"] = { ...dateSearch["createdAt"], $lte: endDateTime };
+        }
+
+        const notificationCount = await Notification.find({...notificationSearch, ...dateSearch}).countDocuments();
+        const notifications = await Notification.find({...notificationSearch, ...dateSearch}).sort({ createdAt: -1 }).skip(skipedNotification).limit(pageSizeToSearch)
+        .populate("userId", "-otp").lean().exec();
 
         return { notifications, totalCount: notificationCount, pageCount: Math.ceil(notificationCount/pageSizeToSearch),
             pageIndex: pageIndexToSearch, pageSize: pageSizeToSearch, count: notifications.length
@@ -86,17 +110,45 @@ export const getNotification = async (userId: string, payload: NotificationPaylo
 
 export const getNotificationById = async (userId: string, notificationId: string) => {
     try {
-        const notificationSearch = { 
-            userId, isDeleted: false, 
+        const notificationSearch:any = { 
+            isDeleted: false, 
             _id: notificationId
         }
-        const notification = await Notification.findOne(notificationSearch).lean().exec();
+        if(mongoose.isObjectIdOrHexString(userId)) {
+            notificationSearch["userId"] = userId;
+        }
+        const notification = await Notification.findOne(notificationSearch)
+        .populate("userId", "-otp").lean().exec();
         if(!notification?._id) {
             throw createHttpError(404, { message: "Notification is either deleted or doesn't exist." });
         }
         return { notification };
     } catch(error) {
         throw createHttpError(500, { message: "Something went wrong in fetching notification by id." });
+    }
+};
+
+export const sendNotification = async (userId: string, data: Partial<INotification>) => {
+    try {
+
+        const users = await User.find({ }).lean().exec();
+
+        const notifications = [];
+
+        for(let user of users) {
+           notifications.push({...data, "userId": user?._id, sentBy: userId, 
+            entityType: "New notification"
+            })
+        }
+
+        if(notifications.length) {
+            await Notification.insertMany(notifications); 
+        }
+
+        return { };
+
+    } catch(error) {
+        throw createHttpError(500, { message: "Something went wrong in sending notification." });
     }
 };
 

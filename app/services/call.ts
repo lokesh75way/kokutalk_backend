@@ -52,8 +52,8 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
 
     const userCredit = await Credit.findOne( { _id: user?.credit, isDeleted: false }).lean();
     
-    // if(!userCredit?.expireAt || new Date(userCredit?.expireAt) < new Date(Date.now())) {
-    //   throw createHttpError(500, { message: "Your account credit has expired. Please add credit to your account" });
+    // if(!userCredit?._id) {
+    //   throw createHttpError(500, { message: "Please add credit to your account" });
     // }
 
     const callerNumber = (existingCaller?.countryCode || "") + (existingCaller?.phoneNumber || "")
@@ -95,9 +95,9 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
     }
 
     const { price: applicationCallRate = 0 } = applicationCallRateDetail || {}
-    // if(creditBalance < Number(price) || creditBalance < Number(applicationCallRate)) {
-    //   throw createHttpError(500, { message: "Your account has insufficient balance to make this call. Please add credit to your account" });
-    // }
+    if(creditBalance < Number(price) || creditBalance < Number(applicationCallRate)) {
+      throw createHttpError(500, { message: "Your account has insufficient balance to make this call. Please recharge your account" });
+    }
     
     const existingUser = await User.findOne( { isDeleted: false, phoneNumber, countryCode }).lean();
 
@@ -218,7 +218,9 @@ export const updateCallStatus = async (callId: string): Promise<any> => {
 
       creditAmountUsed = callDetail?.callRateDetail ? creditAmountUsed : providerTotalPrice;
 
-      await Credit.findOneAndUpdate({ _id: callDetail?.creditUsed }, { 
+      await Credit.findOneAndUpdate({ _id: callDetail?.creditUsed,
+        remainingAmount: { $gte: creditAmountUsed }
+       }, { 
         $inc: { remainingAmount: -1*creditAmountUsed }
       }, { new: true}).lean().exec();
 
@@ -334,15 +336,20 @@ export const getCallLog = async (userId: string, payload: CallLogPayload) => {
     pageSizeToSearch = pageSizeToSearch > 0 ? pageSizeToSearch : 10;
     const skipedCall = (pageIndexToSearch - 1)*pageIndexToSearch;
 
-    const callSearch:any = { 
-      $and: [
-      { 
+    let userCallSearch = {};
 
+    if(userId && mongoose.isObjectIdOrHexString(userId)) {
+      userCallSearch = { 
         $or: [
         { "callerDetail.userId": new mongoose.Types.ObjectId(userId), },
         { "receiverDetail.userId": new mongoose.Types.ObjectId(userId), } 
         ]
-      },
+      }
+    }
+
+    const callSearch:any = { 
+      $and: [
+      userCallSearch,
       { 
           
         $or: [
@@ -483,5 +490,108 @@ export const dialNumber = async (dialedNumber: string, dialingNumber: string) =>
   } catch (error) {
     console.log("===========Error in fn to dial number", error);
     throw createHttpError(500, { message: "Something went wrong in dialing a number." });
+  }
+};
+
+export const getCall = async (userId: string, payload: CallLogPayload) => {
+  try {
+    const { pageIndex = "", pageSize = "", firstName = "", lastName = "", phoneNumber = "", countryCode = "" } = payload;
+    
+    let pageIndexToSearch = pageIndex && !Number.isNaN(pageIndex) ? parseInt(pageIndex + "") : 1;
+    let pageSizeToSearch = pageSize && !Number.isNaN(pageSize) ? parseInt(pageSize + "") : 10;
+    pageIndexToSearch = pageIndexToSearch > 0 ? pageIndexToSearch : 1;
+    pageSizeToSearch = pageSizeToSearch > 0 ? pageSizeToSearch : 10;
+    const skipedCall = (pageIndexToSearch - 1)*pageIndexToSearch;
+
+    let userCallSearch = {};
+
+    if(userId && mongoose.isObjectIdOrHexString(userId)) {
+      userCallSearch = { 
+        $or: [
+        { "callerDetail.userId": new mongoose.Types.ObjectId(userId), },
+        { "receiverDetail.userId": new mongoose.Types.ObjectId(userId), } 
+        ]
+      }
+    }
+
+    const callSearch:any = { 
+      $and: [
+      userCallSearch,
+      { 
+          
+        // $or: [
+        // { "isDeletedByCaller": false },
+        // { "isDeletedByReceiver": false } 
+        // ]
+      }
+      ]
+    }
+
+    const searchQuery: any = [];
+
+    if(firstName) {
+
+      searchQuery.push({
+        $or: [
+          { "callerDetail.firstName": new RegExp(escapeRegex(firstName), 'i') },
+          { "receiverDetail.firstName": new RegExp(escapeRegex(firstName), 'i') }
+        ]
+      })
+    }
+    if(lastName) {
+      searchQuery.push({
+        $or: [
+          { "callerDetail.lastName": new RegExp(escapeRegex(lastName), 'i') },
+          { "receiverDetail.lastName": new RegExp(escapeRegex(lastName), 'i') }
+        ]
+      })
+    }
+    if(phoneNumber) {
+      searchQuery.push({
+        $or: [
+          { "callerDetail.phoneNumber": new RegExp(escapeRegex(phoneNumber), 'i') },
+          { "receiverDetail.phoneNumber": new RegExp(escapeRegex(phoneNumber), 'i') }
+        ]
+      })
+    }
+    if(countryCode) {
+      searchQuery.push({
+        $or: [
+          { "callerDetail.phoneNumber": new RegExp(escapeRegex(countryCode), 'i') },
+          { "receiverDetail.phoneNumber": new RegExp(escapeRegex(countryCode), 'i') }
+        ]
+      })
+    }
+
+    if(searchQuery.length) {
+      callSearch["$and"].push({ "$or": searchQuery })
+    }
+
+    const dateSearch: any = { };
+
+    if(payload.from) {
+      const startDateTime = moment(payload.from).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).format();
+      dateSearch["createdAt"] = { $gte: startDateTime };
+    }
+
+    if(payload.to) {
+        const endDateTime = moment(payload.to).set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).format();
+        dateSearch["createdAt"] = { ...dateSearch["createdAt"], $lte: endDateTime };
+    }
+
+    const callCount = await Call.find({...callSearch, ...dateSearch}).countDocuments();
+
+    const calls = await Call.aggregate([
+      { $match: {...callSearch, ...dateSearch} },
+      { $sort: { createdAt: -1 } },
+      { $skip: skipedCall },
+      { $limit: pageSizeToSearch },
+    ]).allowDiskUse(true).exec();
+
+    return { calls, totalCount: callCount, pageCount: Math.ceil(callCount/pageSizeToSearch),
+            pageIndex: pageIndexToSearch, pageSize: pageSizeToSearch, count: calls.length
+    };
+  } catch(error) {
+    throw createHttpError(500, { message: "Something went wrong in fetching call history." });
   }
 };

@@ -4,6 +4,7 @@ import * as userService from "./user";
 import User from "../schema/User";
 import { sendOtp } from "./sms";
 import Contact from "../schema/Contact";
+import { saveNotification } from "./notification";
 
 const OtpExpireTime = process.env.OTP_EXPIRATION_TIME_LIMIT || "20m";
 
@@ -33,10 +34,6 @@ export const  saveOtp = async (phoneNumber: string, countryCode: string) => {
     const expirationMinutes = parseExpireTime(OtpExpireTime);
     const otpValue = generateOtp();
     const expireAt = new Date(Date.now() + expirationMinutes * 60000);
-    const newOtp  = await Otp.create({
-        value: otpValue,
-        expireAt : expireAt,
-    })
     const registeredUser = await User.findOneAndUpdate({ 
         phoneNumber,
         countryCode,
@@ -47,6 +44,16 @@ export const  saveOtp = async (phoneNumber: string, countryCode: string) => {
             countryCode
         }
     }, { new: true, upsert: true }).lean().exec();
+
+    const newOtp  = await Otp.create({
+      value: otpValue,
+      expireAt : expireAt,
+      userId: registeredUser?._id
+    })
+
+    await saveNotification(registeredUser?._id, { entityType: "registration",
+      message: `Registration successful for kokutalk.`
+    })
 
     const contactAdded = await Contact.findOneAndUpdate(
         { phoneNumber, countryCode, userId: registeredUser?._id, 

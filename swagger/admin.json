@@ -21,23 +21,23 @@
               "type": "string",
               "example": "666968c3bb67a71a9b27fe57"
             },
-            "firstName": {
+            "name": {
               "type": "string",
-              "example": "user name"
+              "example": "admin name"
             },
-            "lastName": {
+            "phoneNumber": {
               "type": "string",
-              "example": "last name"
+              "example": "8912780912"
+            },
+            "countryCode": {
+              "type": "string",
+              "example": "+91"
             },
             "email": {
               "type": "string",
               "example": "noreply@gmail.com"
             },
             "profileImage": {
-              "type": "string",
-              "example": ""
-            },
-            "userName": {
               "type": "string",
               "example": ""
             },
@@ -50,6 +50,14 @@
               "example": false
             },
             "termsAgreed": {
+              "type": "boolean",
+              "example": true
+            },
+            "allowSmsNotification": {
+              "type": "boolean",
+              "example": true
+            },
+            "allowEmailNotification": {
               "type": "boolean",
               "example": true
             },
@@ -916,19 +924,19 @@
                 {
                   "name": "from",
                   "in": "query",
-                  "description": "Start date of customer registration to search in mm-dd-yyyy format",
+                  "description": "Start date of date range to search in yyyy-mm-dd format",
                   "schema": {
                     "type": "string",
-                    "example": "10-01-2024"
+                    "example": "2024-10-01"
                   }
               },
               {
                 "name": "to",
                 "in": "query",
-                "description": "Last date of customer registration to search in mm-dd-yyyy",
+                "description": "Last date of date range to search in yyyy-mm-dd",
                 "schema": {
                   "type": "string",
-                  "example": "10-01-2024"
+                  "example": "2024-10-01"
                 }
               },
                   {

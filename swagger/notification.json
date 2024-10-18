@@ -110,6 +110,33 @@
                     }
                 },
                 {
+                  "name": "from",
+                  "in": "query",
+                  "description": "Start date of date range to search in yyyy-mm-dd format",
+                  "schema": {
+                    "type": "string",
+                    "example": "2024-10-01"
+                  }
+              },
+              {
+                "name": "to",
+                "in": "query",
+                "description": "Last date of date range to search in yyyy-mm-dd",
+                "schema": {
+                  "type": "string",
+                  "example": "2024-10-01"
+                }
+              },
+                {
+                  "name": "userId",
+                  "in": "query",
+                  "description": "Id of customer to search",
+                  "schema": {
+                    "type": "string",
+                    "example": "66ffe4c6b75cc7b64f141e7f"
+                  }
+                },
+                {
                     "name": "pageIndex",
                     "in": "query",
                     "description": "Index of page to search",
@@ -393,6 +420,101 @@
                 }
               }
             }
+        }
+      },
+
+      "/notifications/send": {
+        "post": {
+          "summary": "Sending notification to users",
+          "description": "Endpoint to send notification",
+          "tags": ["Notification"],
+          "security": [{ "bearerAuth": [] }],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "entityType": { "type": "string" }
+                  },
+                  "required": ["message"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Notification sent successfully"
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/BadRequestSchema"
+                  }
+                }
+              }
+            },
+            "401": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                    }
+                  }
+                }
+            },
+            "404":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "",
+              "content": {
+                "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/ErrorResponseSchema"
+                    }
+                }
+              }
+            }
+          }
         }
       }
     }

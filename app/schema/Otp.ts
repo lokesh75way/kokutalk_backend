@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { BaseSchema } from ".";
 
 const Schema = mongoose.Schema;
@@ -9,6 +9,7 @@ export interface IOtp extends BaseSchema {
   useLimit : number,
   useCount : number,
   lastUseAt : Date,
+  userId?: Types.ObjectId | null;
 }
 
 const OtpSchema = new Schema<IOtp>(
@@ -18,6 +19,7 @@ const OtpSchema = new Schema<IOtp>(
     useLimit : { type : Number , default : 1 } ,
     useCount : { type : Number ,default : 0 } ,
     lastUseAt : { type : Date } ,
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "user", default: null }
   },
   { timestamps: true }
 );

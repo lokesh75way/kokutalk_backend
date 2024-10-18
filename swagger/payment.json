@@ -215,6 +215,33 @@
                         "type": "any",
                         "example": "1"
                         }
+                  },
+                  {
+                    "name": "from",
+                    "in": "query",
+                    "description": "Start date of date range to search in yyyy-mm-dd format",
+                    "schema": {
+                      "type": "string",
+                      "example": "2024-10-01"
+                    }
+                },
+                {
+                  "name": "to",
+                  "in": "query",
+                  "description": "Last date of date range to search in yyyy-mm-dd",
+                  "schema": {
+                    "type": "string",
+                    "example": "2024-10-01"
+                  }
+                },
+                  {
+                    "name": "userId",
+                    "in": "query",
+                    "description": "Id of customer to search",
+                    "schema": {
+                      "type": "string",
+                      "example": "66ffe4c6b75cc7b64f141e7f"
+                    }
                   }
             ],
             "responses": {
