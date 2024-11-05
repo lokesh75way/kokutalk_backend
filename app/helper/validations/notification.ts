@@ -62,5 +62,20 @@ export const sendNotification = checkExact([
     .optional()
     .isString()
     .bail()
-    .withMessage('Entity type must be a string') 
+    .withMessage('Entity type must be a string'),
+  body('customers')
+    .optional()
+    .isArray()
+    .bail()
+    .withMessage("Customer ids must be an array"),
+  body('customers.*')
+    .optional()
+    .isString()
+    .bail()
+    .withMessage("Customer id entry be a string")
+    .custom((value) => {
+      return mongoose.isObjectIdOrHexString(value)
+    })
+    .bail()
+    .withMessage("Invalid customer id entry") 
 ])

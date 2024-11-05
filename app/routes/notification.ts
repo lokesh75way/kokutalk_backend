@@ -48,7 +48,12 @@ router.get(
   validateIdParam("id"),
   catchError,
   expressAsyncHandler(async (req, res) => {
-    const userId =  req?.user?._id || "";
+    let userId =  req?.user?._id || "";
+    const userRole = (req?.user as any)?.role || "";
+    const userToSearch = (req.query.userId as string) || "";
+    if(userRole ==ROLE.ADMIN) {
+      userId = userToSearch ? userToSearch : "";
+    }
     const notificationId: string = req.params.id;
     const data = await notificationService.getNotificationById(userId, notificationId);
     res.send(createResponse(data, "Notification detail fetched successfully"))
@@ -63,7 +68,7 @@ router.post(
   catchError,
   expressAsyncHandler(async (req, res) => {
     const userId =  req?.user?._id || "";
-    const data = await notificationService.sendNotification(userId, req.body);
+    const data = await notificationService.sendNotification(userId, req.body, req.body.customers || []);
     res.send(createResponse(data, "Notification sent succesfully"))
   })
 )
