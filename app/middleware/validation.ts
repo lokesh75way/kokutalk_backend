@@ -71,7 +71,7 @@ export const validate = (validationName: string): any[] => {
     case "admin:login": {
       return [adminLogin]
     }
-    case "admin:proffile-update": {
+    case "admin:profile-update": {
       return [adminUpdate]
     }
     case "admin:change-password": {

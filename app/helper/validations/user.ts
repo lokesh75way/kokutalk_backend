@@ -8,7 +8,7 @@ export const sendOtp = checkExact([
     .isString()
     .bail()
     .withMessage('Phone number must be a string')
-    .matches(/\d{10}/)
+    .matches(/^\d{10}$/)
     .bail().withMessage('Phone number must be valid'),
   body('countryCode')
     .exists({ values: "falsy" })
@@ -49,7 +49,7 @@ export const addNumber = checkExact([
     .isString()
     .bail()
     .withMessage('Phone number must be a string')
-    .matches(/\d{10}/)
+    .matches(/^\d{10}$/)
     .bail().withMessage('Phone number must be valid'),
   body('countryCode')
     .exists({ values: "falsy" })

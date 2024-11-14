@@ -437,7 +437,8 @@
                   "type": "object",
                   "properties": {
                     "message": { "type": "string" },
-                    "entityType": { "type": "string" }
+                    "entityType": { "type": "string" },
+                    "customers": { "type": "array", "items": { "type": "string" }}
                   },
                   "required": ["message"]
                 }
