@@ -118,10 +118,10 @@ const initApp = async (): Promise<void> => {
        
        dialingNumber = (existingCaller?.countryCode || "") + (existingCaller?.phoneNumber || "");
 
+       dialedNumber = _to;
+       
        const phoneNumber = dialedNumber.slice(-10);
        const countryCode = dialedNumber.slice(0, dialedNumber.length - 10);
-
-       dialedNumber = _to;
        
        await makeCall(phoneNumber, countryCode, req.user!)
 
