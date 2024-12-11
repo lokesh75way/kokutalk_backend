@@ -50,11 +50,11 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
 
     let existingCaller = await Contact.findOne({ _id: user?.contact, isDeleted: false}).lean();
 
-    const userCredit = await Credit.findOne( { _id: user?.credit, isDeleted: false }).lean();
+    const userCredit = await Credit.findOne( { usedBy: user?._id, isDeleted: false }).lean();
     
-    // if(!userCredit?._id) {
-    //   throw createHttpError(500, { message: "Please add credit to your account" });
-    // }
+    if(!userCredit?._id) {
+      throw createHttpError(500, { message: "Please add credit to your account" });
+    }
 
     const callerNumber = (existingCaller?.countryCode || "") + (existingCaller?.phoneNumber || "")
     const existingNumber = await getNumber(callerNumber)
@@ -141,16 +141,6 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
       userName: existingUser?.name,
     }
 
-    // const call = await client.calls
-    // .create({
-    //     twiml: '<Response><Say>Hello!</Say></Response>',
-    //     to: countryCode + phoneNumber,
-    //     from: existingCaller?.countryCode + existingCaller?.phoneNumber,
-    //     statusCallback: `${process.env.SERVER_URL}/calls/update`,
-    //     statusCallbackMethod: "POST",
-    //     statusCallbackEvent: ["initiated", "ringing", "answered", "completed"],
-    // })
-
     await Call.findOneAndUpdate({
        caller: existingCaller?._id,
        receiver: contactAdded?._id,
@@ -163,9 +153,9 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
         receiver: contactAdded?._id,
         callerDetail,
         receiverDetail,
-        status: "", // call?.status,
-        sid: "", // call?.sid,
-        creditUsed: user?.credit,
+        status: "",
+        sid: "",
+        creditUsed: userCredit?._id,
         providerCallRate: {
           name: Provider.TWILIO,
           duration: 1,
@@ -186,7 +176,7 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
   }
 };
 
-export const updateCallStatus = async (callId: string): Promise<any> => {
+export const updateCallStatus = async (callId: string, callRefId: string): Promise<any> => {
     try {
       if(!accountSid || !authToken || !twilioPhoneNumber) {
         throw createHttpError(500, { message: "Call status can't be updated. Please check credential of service provider and phone number." });
@@ -202,14 +192,22 @@ export const updateCallStatus = async (callId: string): Promise<any> => {
         throw createHttpError(500, { message: "Call status can't be updated. Please check credential of service provider and dialed number." });
       }
 
-      const callDetail = await Call.findOne( { "receiverDetail.sid": receivingNumber?.sid, dialerSid: accountSid, sid: "", status: "",
+      if(!callRefId || !mongoose.isObjectIdOrHexString(callRefId)) {
+        throw createHttpError(500, { message: "Invalid call id provided to update status" });
+      }
+
+      const callDetail = await Call.findOne( { _id: callRefId,
         isDeletedByCaller: false,
        isDeletedByReceiver: false,
-       }).lean();
+       }).lean().exec();
+
+      if(!callDetail?._id) {
+        throw createHttpError(500, { message: "Call record not found to update status" });
+      }
 
       const callStartTime = callData?.startTime ? new Date(callData?.startTime) : null;
       const callEndTime = callData?.endTime ? new Date(callData?.endTime) : null;
-
+      
       let providerTotalPrice = 0, creditAmountUsed = 0;
       if(callStartTime && callEndTime) {
         providerTotalPrice = calculatePrice(callStartTime, callEndTime, callDetail?.providerCallRate)
@@ -217,7 +215,7 @@ export const updateCallStatus = async (callId: string): Promise<any> => {
       }
 
       creditAmountUsed = callDetail?.callRateDetail ? creditAmountUsed : providerTotalPrice;
-
+      
       await Credit.findOneAndUpdate({ _id: callDetail?.creditUsed,
         remainingAmount: { $gte: creditAmountUsed }
        }, { 
@@ -467,14 +465,43 @@ export const dialNumber = async (dialedNumber: string, dialingNumber: string) =>
     const VoiceResponse = twilio.twiml.VoiceResponse;
     const response = new VoiceResponse();
 
+    response.dial()
+
     if (!dialedNumber) {
       return createHttpError(500, { error: "Dialed number is not set" });
     }
 
-    const statusCallbackUrl =
-      `${process.env.SERVER_URL}/call-status`;
+    if (!dialingNumber) {
+      return createHttpError(500, { error: "Dialing number is not set" });
+    }
 
-    const dial = response.dial({ callerId: dialingNumber ? dialingNumber :  process.env.TWILIO_PHONE_NUMBER });
+    const callerPhoneNumber = dialingNumber.slice(-10);
+    const callerCountryCode = dialingNumber.slice(0, dialingNumber.length - 10);
+
+    const receiverPhoneNumber = dialedNumber.slice(-10);
+    const receiverCountryCode = dialedNumber.slice(0, dialedNumber.length - 10);
+ 
+    const dialedCall = await Call.findOne({
+      "callerDetail.phoneNumber": callerPhoneNumber,
+      "callerDetail.countryCode": callerCountryCode,
+      "receiverDetail.phoneNumber": receiverPhoneNumber,
+      "receiverDetail.countryCode": receiverCountryCode,
+      isDeletedByCaller: false,
+      isDeletedByReceiver: false,
+      $or: [{ sid: { $exists: false } }, { sid: { $in: ["", null] }}]
+    }).lean().exec();
+
+    const callId = dialedCall?._id || "";
+
+    if (!callId) {
+      return createHttpError(500, { error: "No current call between caller and receiver" });
+    }
+
+
+    const statusCallbackUrl =
+      `${process.env.SERVER_URL}/call-status/${callId}`;
+
+    const dial = response.dial({ callerId: process.env.TWILIO_PHONE_NUMBER });
 
     dial.number(
       {
@@ -482,7 +509,7 @@ export const dialNumber = async (dialedNumber: string, dialingNumber: string) =>
         statusCallbackMethod: "POST",
         statusCallbackEvent: ["initiated", "answered", "ringing", "completed"],
       },
-      dialedNumber
+      dialedNumber,
     );
 
     return dial.toString();

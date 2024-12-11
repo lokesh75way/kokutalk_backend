@@ -67,3 +67,15 @@ export const parsePagination = (input: string = '{}', fields: PageDetail[]): any
   }
   return parsedPayload;
 }
+
+// Helper fn to validate phone number
+export const validPhoneNumber = (input: string = ""): boolean => {
+  const phoneNumberRegex = new RegExp(/^\d{10}$/);
+  return phoneNumberRegex.test(input)
+}
+
+// Helper fn to validate phone number
+export const validCountryCode = (input: string = ""): boolean => {
+  const countryCodeRegex = new RegExp(/^\+(\d{1}\-)?(\d{1,3})$/);
+  return countryCodeRegex.test(input)
+}

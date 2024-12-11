@@ -29,6 +29,7 @@ import expressAsyncHandler from "express-async-handler";
 import { createResponse } from "./app/helper/response";
 import createHttpError from "http-errors";
 import { IAdmin } from "./app/schema/Admin";
+import { validCountryCode, validPhoneNumber } from "./app/helper/common";
 
 declare global {
   namespace Express {
@@ -102,7 +103,7 @@ const initApp = async (): Promise<void> => {
   // Store the dialed number for use in /voice
   let dialedNumber = "";
 
-  let dialingNumber = "";
+  let dialingNumber = process.env.TWILIO_PHONE_NUMBER || "";
 
   // /dial endpoint called from FE to update dailedNumber
   router.post("/dial", 
@@ -116,12 +117,20 @@ const initApp = async (): Promise<void> => {
 
        let existingCaller = await Contact.findOne({ _id: req?.user?.contact, isDeleted: false}).lean();
        
+       if(!validPhoneNumber(existingCaller?.phoneNumber || "") || !validCountryCode(existingCaller?.countryCode || "")) {
+        throw createHttpError(400, { message: "Invalid caller phone number", data: {} })
+       }
+       
        dialingNumber = (existingCaller?.countryCode || "") + (existingCaller?.phoneNumber || "");
 
        dialedNumber = _to;
        
        const phoneNumber = dialedNumber.slice(-10);
        const countryCode = dialedNumber.slice(0, dialedNumber.length - 10);
+       
+       if(!validPhoneNumber(phoneNumber) || !validCountryCode(countryCode)) {
+        throw createHttpError(400, { message: "Invalid value for _to provided", data: {} })
+       }
        
        await makeCall(phoneNumber, countryCode, req.user!)
 
@@ -139,11 +148,12 @@ const initApp = async (): Promise<void> => {
     })
   );
 
-  router.post("/call-status", 
+  router.post("/call-status/:callId", 
     expressAsyncHandler(async (req, res) => {
+      const callId = req.params.callId || "";
       const callStatus = req.body.CallStatus;
 
-      await updateCallStatus(req.body.CallSid)
+      await updateCallStatus(req.body.CallSid, callId)
 
       wss.clients.forEach((client:any) => {
         if (client.readyState === WebSocket.OPEN) {

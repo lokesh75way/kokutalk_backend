@@ -29,7 +29,7 @@ router.post(
   validate("call:update"),
   catchError,
   expressAsyncHandler(async (req, res) => {
-    const response = await updateCallStatus(req.body.CallSid);
+    const response = await updateCallStatus(req.body.CallSid, "");
     res.send(createResponse({}, "Call status updated"));
   })
 )

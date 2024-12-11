@@ -1,6 +1,8 @@
 import createHttpError from "http-errors";
 import Credit, { ICredit} from "../schema/Credit";
 import { CURRENCY } from "../schema/Payment";
+import { updateUser } from "./user";
+import mongoose from "mongoose";
 
 interface CreditPayload {
     pageIndex?: string | number | null;
@@ -20,6 +22,8 @@ export const addCredit = async (userId: string, data: Partial<ICredit>) => {
         },
         { new: true, upsert: true }
       ).lean().exec();
+
+      await updateUser(userId, { credit: userCredit?._id ? new mongoose.Types.ObjectId(userCredit?._id) : null})
 
       return userCredit;
 
