@@ -80,6 +80,7 @@ app.use(morgan("dev"));
 
 const initApp = async (): Promise<void> => {
   // init mongodb
+  console.log("==========App restart=======")
   await initDB();
 
   // passport init
