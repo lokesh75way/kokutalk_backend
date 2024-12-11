@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -11,23 +12,28 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        
 
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.5.4
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-      - name: Deploy application
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Disable strict host checking
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            sudo -s
+          mkdir -p ~/.ssh
+          echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+
+      - name: Deploy to server using SSH with password
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.SSH_HOST }} # Remote server IP or domain, saved in Secrets
+          username: ${{ secrets.SSH_USER }} # SSH username saved in Secrets
+          password: ${{ secrets.SSH_PASSWORD }} # SSH password saved in Secrets
+          port: 22 # SSH port (default is 22)
+          script: |
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm use node
             echo "Successfully connected to server"
             cd /var/www/html/kokutalk/kokutalk_backend
             git pull origin main
-            npm i --legacy-peer-deps
-            npm run build
-            pm2 restart 2
-          EOF
+            npm i
+            pm2 restart 0
