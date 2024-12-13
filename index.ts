@@ -161,7 +161,23 @@ const initApp = async (): Promise<void> => {
           client.send(JSON.stringify(req.body));
         }
       });
-      res.send(createResponse(callStatus, `Call status for ${req.body.CallSid} updated successulyys`));
+      res.send(createResponse(callStatus, `Call status for ${req.body.CallSid} updated successfully`));
+    })
+  );
+
+  router.post("/call-status", 
+    expressAsyncHandler(async (req, res) => {
+      const callId = req.params.callId || "";
+      const callStatus = req.body.CallStatus;
+
+      // await updateCallStatus(req.body.CallSid, callId)
+
+      wss.clients.forEach((client:any) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify(req.body));
+        }
+      });
+      res.send(createResponse(callStatus, `Call status for ${req.body.CallSid} updated successfully`));
     })
   );
 
