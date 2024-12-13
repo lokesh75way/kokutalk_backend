@@ -8,7 +8,7 @@ import Call, { Provider } from "../schema/Call";
 import Credit, { Currency } from "../schema/Credit";
 import { PricingV2VoiceVoiceNumberOutboundCallPrices } from "twilio/lib/rest/pricing/v2/voice/number";
 import CallRate, { DurationUnit } from "../schema/CallRate";
-import { calculatePrice } from "../helper/common";
+import { calculatePrice, parsePayload } from "../helper/common";
 import mongoose from "mongoose";
 import { escapeRegex } from "../helper/common";
 import moment from "moment-timezone";
@@ -80,8 +80,11 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
     const { price = 0, price_unit = Currency.USD } = providerCallRateDetail || {};
     const creditBalance = userCredit?.remainingAmount ? Number(userCredit?.remainingAmount) : 0;
 
+    const callRateSearch = parsePayload(JSON.stringify({ fromCountryCode: existingCaller?.countryCode, toCoutryCode: countryCode}), ["fromCountryCode", "toCountryCode"])
 
-    const applicationCallRateDetail = await CallRate.findOne( { isDeleted: false, fromCountryCode:existingCaller?.countryCode, toCountrycode: countryCode }).lean();
+    const applicationCallRateDetail = await CallRate.findOne( { 
+      ...callRateSearch, isDeleted: false 
+    }).lean().exec();
 
     let callRateDetail = null;
     if(applicationCallRateDetail?._id) {
@@ -98,11 +101,15 @@ export const makeCall = async (phoneNumber: string, countryCode: string, user: I
     if(creditBalance < Number(price) || creditBalance < Number(applicationCallRate)) {
       throw createHttpError(500, { message: "Your account has insufficient balance to make this call. Please recharge your account" });
     }
-    
-    const existingUser = await User.findOne( { isDeleted: false, phoneNumber, countryCode }).lean();
 
+    const countryCodeSearch = parsePayload(JSON.stringify({ countryCode }), ["countryCode"])
+    
+    const existingUser = await User.findOne( { ...countryCodeSearch, isDeleted: false, phoneNumber }).lean();
+
+    
+    
     const contactAdded = await Contact.findOneAndUpdate(
-      { phoneNumber, countryCode, userId: existingUser?._id, 
+      { ...countryCodeSearch, phoneNumber, userId: existingUser?._id, 
         createdBy: user?._id, isDeleted: false, 
       },
       {
@@ -501,7 +508,7 @@ export const dialNumber = async (dialedNumber: string, dialingNumber: string) =>
     const statusCallbackUrl =
       `${process.env.SERVER_URL}/call-status/${callId}`;
 
-    const dial = response.dial({ callerId: process.env.TWILIO_PHONE_NUMBER });
+    const dial = response.dial({ callerId: dialingNumber || process.env.TWILIO_PHONE_NUMBER });
 
     dial.number(
       {
