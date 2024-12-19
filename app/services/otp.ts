@@ -75,7 +75,7 @@ export const  saveOtp = async (phoneNumber: string, countryCode: string) => {
     }).lean().exec();
     await userService.updateUser(registeredUser._id,{otp : new mongoose.Types.ObjectId(newOtp._id), contact: registeredUser?.contact ? new mongoose.Types.ObjectId(registeredUser?.contact)  : new mongoose.Types.ObjectId(contactAdded?._id) }) ;
     console.log("OTP ========== ",newOtp.value);
-    // await sendOtp(otpValue, countryCode + phoneNumber, registeredUser.name ? "login" : "registration")
+    await sendOtp(otpValue, countryCode + phoneNumber, registeredUser.name ? "login" : "registration")
 }
 
 export const generateOtp = () => {
