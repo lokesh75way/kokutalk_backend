@@ -395,8 +395,8 @@ export const getCallLog = async (userId: string, payload: CallLogPayload) => {
     if(countryCode) {
       searchQuery.push({
         $or: [
-          { "callerDetail.phoneNumber": new RegExp(escapeRegex(countryCode), 'i') },
-          { "receiverDetail.phoneNumber": new RegExp(escapeRegex(countryCode), 'i') }
+          { "callerDetail.countryCode": new RegExp(escapeRegex(countryCode), 'i') },
+          { "receiverDetail.countryCode": new RegExp(escapeRegex(countryCode), 'i') }
         ]
       })
     }
@@ -490,9 +490,9 @@ export const dialNumber = async (dialedNumber: string, dialingNumber: string) =>
  
     const dialedCall = await Call.findOne({
       "callerDetail.phoneNumber": callerPhoneNumber,
-      "callerDetail.countryCode": callerCountryCode,
+      "callerDetail.countryCode": new RegExp(escapeRegex(callerCountryCode), 'i'),
       "receiverDetail.phoneNumber": receiverPhoneNumber,
-      "receiverDetail.countryCode": receiverCountryCode,
+      "receiverDetail.countryCode": new RegExp(escapeRegex(receiverCountryCode), 'i'),
       isDeletedByCaller: false,
       isDeletedByReceiver: false,
       $or: [{ sid: { $exists: false } }, { sid: { $in: ["", null] }}]
@@ -591,8 +591,8 @@ export const getCall = async (userId: string, payload: CallLogPayload) => {
     if(countryCode) {
       searchQuery.push({
         $or: [
-          { "callerDetail.phoneNumber": new RegExp(escapeRegex(countryCode), 'i') },
-          { "receiverDetail.phoneNumber": new RegExp(escapeRegex(countryCode), 'i') }
+          { "callerDetail.countryCode": new RegExp(escapeRegex(countryCode), 'i') },
+          { "receiverDetail.countryCode": new RegExp(escapeRegex(countryCode), 'i') }
         ]
       })
     }

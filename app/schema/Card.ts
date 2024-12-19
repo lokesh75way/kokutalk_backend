@@ -4,37 +4,27 @@ import { BaseSchema } from ".";
 const Schema = mongoose.Schema;
 
 export interface ICard extends BaseSchema {
-  cvv: string;
-  provider: string,
-  providerUserId: string,
-  providerUserName: string,
-  expireAt: Date,
-  userId: Types.ObjectId,
-  createdBy: Types.ObjectId, 
-  updatedBy?: Types.ObjectId | null, 
-  deletedBy?: Types.ObjectId | null, 
-  card?: Types.ObjectId | null; 
+  cardId: string;
+  userId: Types.ObjectId | null;
+  status?: string | null;
+  createdBy: Types.ObjectId | null;
+  updatedBy?: Types.ObjectId | null;
   isDeleted: boolean;
-  termsAgreed: boolean;
-  allowSmsNotification: boolean;
-  allowEmailNotification: boolean;
-  status ?: string | null;
-  deletedAt ?: Date ; 
+  deletedBy?: Types.ObjectId | null;
+  deletedAt?: Date | null;
+  isVerified: boolean 
 }
 
 const CardSchema = new Schema<ICard>(
   {
-    cvv : {type : String, required: true } ,
-    provider :  { type: String, required: true },
-    providerUserId :  { type: String, required: true },
-    providerUserName :  { type: String, required: true },
-    expireAt : {type : Date, required: true },
+    cardId: { type: String, required: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
-    isDeleted : {type : Boolean , default : false} ,
-    deletedAt : {type : Date},
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
-    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
-    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },  
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user'},
+    isDeleted: { type: Boolean, required: true, default: false },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+    deletedAt: { type: Date, default: null },
+    isVerified: { type: Boolean, required: true, default: false },  
   },
   { timestamps: true }
 );

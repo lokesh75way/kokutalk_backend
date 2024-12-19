@@ -18,9 +18,10 @@ interface CallRatePayload {
 
 export const addCallRate = async (adminId: string, data: Partial<ICallRate>) => {
     try {
+        const countryCodeSearch = parsePayload(JSON.stringify({ fromCountryCode: data.fromCountryCode, toCountryCode: data.toCountryCode }), ["fromCountrycode", "toCountryCode"])
         const callRate = await CallRate.findOneAndUpdate({ 
+            ...countryCodeSearch,
             isDeleted: false,
-            fromCountryCode: data.fromCountryCode, toCountryCode: data.toCountryCode,
          }, { 
             $set: {
                 ...data,

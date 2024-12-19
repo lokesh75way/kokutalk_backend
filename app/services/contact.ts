@@ -2,7 +2,7 @@ import Contact, { IContact } from "../schema/Contact";
 import User from "../schema/User";
 import createHttpError from "http-errors";
 import { loadConfig } from "../helper/config";
-import { escapeRegex } from "../helper/common";
+import { escapeRegex, parsePayload } from "../helper/common";
 
 loadConfig();
 
@@ -17,13 +17,14 @@ interface ContactPayload {
 
 export const addContact = async (userId: string, data: Partial<IContact>) => {
     try {
+        const countryCodeSearch = parsePayload(JSON.stringify({ countryCode: data.countryCode }), ["countryCode"])
         const existingUser = await User.findOne({ 
-            phoneNumber: data?.phoneNumber, countryCode: data?.countryCode, isDeleted: false
+            ...countryCodeSearch, phoneNumber: data?.phoneNumber, isDeleted: false
         }).lean();
 
         const contact = await Contact.findOneAndUpdate({ 
-            createdBy: userId, isDeleted: false,
-            phoneNumber: data?.phoneNumber, countryCode: data?.countryCode,
+            ...countryCodeSearch, createdBy: userId, isDeleted: false,
+            phoneNumber: data?.phoneNumber,
             userId: existingUser?._id
          }, { 
             $set: {
