@@ -16,15 +16,20 @@
             },
             "card": {
               "type": "string",
-              "example": ""
+              "example": "666968c3bb67a71a9b27fe58"
             },
             "serviceUsed": {
               "type": "string",
-              "enum": ["paypal"]
+              "enum": ["paypal", "stripe"]
             },
             "servicePaymentStatus": {
               "type": "string",
-              "example": ""
+              "example": "succeeded"
+            },
+            "servicePaymentStatusUpdatedAt": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2024-12-18T09:22:11.200Z"
             },
             "servicePaymentId": {
                 "type": "string",
@@ -100,10 +105,11 @@
                   "properties": {
                     "amount": { "type": "number" },
                     "servicePaymentId": { "type": "string" },
-                    "servicePaymentStatus": { "type": "string" },
-                    "currency": { "type": "string" }
+                    "servicePaymentStatus": { "type": "string", "enum": ["SUCCESS", "FAILED"] },
+                    "currency": { "type": "string" },
+                    "card": { "type": "string" }
                   },
-                  "required": ["amount", "servicePaymentId", "servicePaymentStatus"]
+                  "required": ["amount"]
                 }
               }
             }

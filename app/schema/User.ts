@@ -17,7 +17,8 @@ export interface IUser extends BaseSchema {
   allowSmsNotification: boolean;
   allowEmailNotification: boolean;
   status ?: string | null;
-  deletedAt ?: Date ; 
+  deletedAt ?: Date ;
+  customerId?: string; 
 }
 
 const UserSchema = new Schema<IUser>(
@@ -35,7 +36,8 @@ const UserSchema = new Schema<IUser>(
     credit: { type: mongoose.Schema.Types.ObjectId, ref: 'credit' },
     invitedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
     contact: { type: mongoose.Schema.Types.ObjectId, ref: 'contact', required: true },
-    card: { type: mongoose.Schema.Types.ObjectId, ref: 'card' },  
+    card: { type: mongoose.Schema.Types.ObjectId, ref: 'card' },
+    customerId :  { type: String, default: "" },  
   },
   { timestamps: true }
 );

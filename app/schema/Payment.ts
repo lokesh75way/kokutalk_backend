@@ -29,7 +29,8 @@ export enum PaymentStatus {
 }
 
 export enum PaymentService {
-    PAYPAL = "paypal"
+    PAYPAL = "paypal",
+    STRIPE = "stripe"
 }
 
 export interface IPayment extends BaseSchema {
@@ -44,8 +45,6 @@ export interface IPayment extends BaseSchema {
   updatedBy?: Types.ObjectId;
   deletedBy?: Types.ObjectId;
   deletedAt?: Date;
-  game?: Types.ObjectId | null;
-  userGame?: Types.ObjectId | null;
   serviceUsed: string;
   servicePaymentId: string;
   servicePaymentStatus: string;
@@ -67,9 +66,9 @@ const PaymentSchema = new Schema<IPayment>(
     deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
     deletedAt: { type: Date },
     servicePaymentId: { type: String, default: "" },
-    servicePaymentStatus: { type: String, default: PaymentStatus.SUCCEEDED },
     servicePaymentStatusUpdatedAt: { type: Date },
-    serviceUsed: { type: String, enum: Object.values(PaymentService), default: PaymentService.PAYPAL },
+    servicePaymentStatus: { type: String, default: PaymentStatus.SUCCEEDED },
+    serviceUsed: { type: String, enum: Object.values(PaymentService), default: PaymentService.STRIPE },
     card: { type: String, default: "" }
   },
   { timestamps: true }

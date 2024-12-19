@@ -1,0 +1,661 @@
+{
+    "tags": [
+      {
+        "name": "Card",
+        "description": "API for card CRUD operations."
+      }
+    ],
+    "components": {
+      "schemas": {
+        "CardResponseSchema": {
+          "type": "object",
+          "properties": {
+            "_id": {
+              "type": "string",
+              "example": "666968c3bb67a71a9b27fe57"
+            },
+            "isVerified": {
+              "type": "boolean",
+              "example": false
+            },
+            "isPrimary": {
+              "type": "boolean",
+              "example": false
+            },
+            "id": {
+              "type": "string",
+              "example": "card_1MvoiELkdIwHu7ixOeFGbN9D"
+            },
+            "object": {
+              "type": "string",
+              "example": "card"
+            },
+            "address_city": {
+              "type": "any",
+              "example": null
+            },
+            "address_country": {
+              "type": "any",
+              "example": null
+            },
+            "address_line1": {
+              "type": "any",
+              "example": null
+            },
+            "address_line1_check": {
+              "type": "any",
+              "example": null
+            },
+            "address_line2": {
+              "type": "any",
+              "example": null
+            },
+            "address_state": {
+              "type": "any",
+              "example": null
+            },
+            "address_zip": {
+              "type": "any",
+              "example": null
+            },
+            "address_zip_check": {
+              "type": "any",
+              "example": null
+            },
+            "brand": {
+              "type": "string",
+              "example": "Visa"
+            },
+            "country": {
+              "type": "string",
+              "example": "US"
+            },
+            "customer": {
+              "type": "string",
+              "example": "cus_NhD8HD2bY8dP3V"
+            },
+            "cvc_check": {
+              "type": "any",
+              "example": null
+            },
+            "dynamic_last4": {
+              "type": "any",
+              "example": null
+            },
+            "exp_month": {
+              "type": "number",
+              "example": 4
+            },
+            "exp_year": {
+              "type": "number",
+              "example": 2024
+            },
+            "fingerprint": {
+              "type": "string",
+              "example": "mToisGZ01V71BCos"
+            },
+            "funding":{ 
+              "type": "string",
+              "example": "credit"
+            },
+            "last4": {
+              "type": "string",
+              "example": "4242"
+            },
+            "metadata": {
+              "type": "object",
+              "example": {}
+            },
+            "name": {
+              "type": "any",
+              "example": null
+            },
+            "tokenization_method": {
+              "type": "any",
+              "example": null
+            },
+            "wallet": {
+              "type": "any",
+              "example": null
+            }
+          }
+        }
+      }
+    },
+    "paths": {
+      "/cards": {
+        "post": {
+          "summary": "Link card to user",
+          "description": "Endpoint to link card to user",
+          "tags": ["Card"],
+          "security": [{ "bearerAuth": [] }],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string", "description": "Id of card to link" }
+                  },
+                  "required": ["id"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Card added successfully"
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                            "card": { "$ref": "#/components/schemas/CardResponseSchema" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/BadRequestSchema"
+                  }
+                }
+              }
+            },
+            "401": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                    }
+                  }
+                }
+            },
+            "403": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthorizationErrorResponseSchema"
+                    }
+                  }
+                }
+            },
+            "404":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "",
+              "content": {
+                "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/ErrorResponseSchema"
+                    }
+                }
+              }
+            }
+          }
+        },
+        "get": {
+            "summary": "Get list of user cards",
+            "description": "Endpoint to get cards of user",
+            "tags": ["Card"],
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+                {
+                    "name": "pageIndex",
+                    "in": "query",
+                    "description": "Index of page to search",
+                    "schema": {
+                      "type": "any",
+                      "example": "1"
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "in": "query",
+                    "description": "Number of entries to return in one page",
+                    "schema": {
+                      "type": "any",
+                      "example": "1"
+                    }
+                }
+            ],
+            "responses": {
+              "200": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Card list fetched succesfully"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                               "cards": { 
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/components/schemas/CardResponseSchema" } 
+                                },
+                                "totalCount": { "type": "number", "example": 1 },
+                                "pageCount": { "type": "number", "example": 1 },
+                                "pageIndex": { "type": "number", "example": 1 },
+                                "pageSize": { "type": "number", "example": 10 },
+                                "count": { "type": "number", "example": 1 }  
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/BadRequestSchema"
+                    }
+                  }
+                }
+              },
+              "401": {
+                  "description": "",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                      }
+                    }
+                  }
+              },
+              "403":  {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthorizationErrorResponseSchema"
+                    }
+                  }
+                }
+              },
+              "404":  {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                    }
+                  }
+                }
+              },
+              "500": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/ErrorResponseSchema"
+                      }
+                  }
+                }
+              }
+            }
+        }
+      },
+
+      "/cards/primary": {
+        "post": {
+          "summary": "Link primary card to user",
+          "description": "Endpoint to link primary card to user",
+          "tags": ["Card"],
+          "security": [{ "bearerAuth": [] }],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string", "description": "Id of card to link as primary card" }
+                  },
+                  "required": ["id"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Primary card added successfully"
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                            "card": { "$ref": "#/components/schemas/CardResponseSchema" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/BadRequestSchema"
+                  }
+                }
+              }
+            },
+            "401": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                    }
+                  }
+                }
+            },
+            "403": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthorizationErrorResponseSchema"
+                    }
+                  }
+                }
+            },
+            "404":  {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "description": "",
+                    "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "",
+              "content": {
+                "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/ErrorResponseSchema"
+                    }
+                }
+              }
+            }
+          }
+        }
+      },
+  
+      "/cards/{id}": {
+        "get": {
+            "summary": "Get card by id",
+            "description": "Endpoint to get card by id",
+            "tags": ["Card"],
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+              {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "description": "ID of the card to fetch",
+                "schema": {
+                  "type": "string",
+                  "example": "60d0fe4f5311236168a109ca"
+                }
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Card detail fetched successfully"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                              "card": { "$ref": "#/components/schemas/CardResponseSchema" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/BadRequestSchema"
+                    }
+                  }
+                }
+              },
+              "401": {
+                  "description": "",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                      }
+                    }
+                  }
+              },
+              "403":  {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthorizationErrorResponseSchema"
+                    }
+                  }
+                }
+              },
+              "404":  {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                    }
+                  }
+                }
+              },
+              "500": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/ErrorResponseSchema"
+                      }
+                  }
+                }
+              }
+            }
+        },
+        "delete": {
+            "summary": "Delete card by id",
+            "description": "Endpoint to delete card by id",
+            "tags": ["Card"],
+            "security": [{ "bearerAuth": [] }],
+            "parameters": [
+              {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "description": "ID of the card to delete",
+                "schema": {
+                  "type": "string",
+                  "example": "60d0fe4f5311236168a109ca"
+                }
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Card deleted successfully"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                              "card": { "$ref": "#/components/schemas/CardResponseSchema" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/BadRequestSchema"
+                    }
+                  }
+                }
+              },
+              "401": {
+                  "description": "",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/AuthenticationErrorResponseSchema"
+                      }
+                    }
+                  }
+              },
+              "403":  {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/AuthorizationErrorResponseSchema"
+                    }
+                  }
+                }
+              },
+              "404":  {
+                "description": "",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "description": "",
+                      "$ref": "#/components/schemas/RouteNotFoundResponseSchema"
+                    }
+                  }
+                }
+              },
+              "500": {
+                "description": "",
+                "content": {
+                  "application/json": {
+                      "schema": {
+                        "description": "",
+                        "$ref": "#/components/schemas/ErrorResponseSchema"
+                      }
+                  }
+                }
+              }
+            }
+        }
+      }
+    }
+}

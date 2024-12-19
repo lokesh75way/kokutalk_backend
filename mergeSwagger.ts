@@ -2,7 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import { JsonObject } from 'swagger-ui-express';
 
-const swaggerFiles = ['admin.json', 'user.json', 'contact.json', 'call.json', 'credit.json', 'notification.json', 'call-rate.json', 'payment.json'];
+const swaggerFiles = ['admin.json', 'user.json', 'contact.json', 'call.json', 'credit.json', 'notification.json', 'call-rate.json', 'payment.json',
+    'card.json'
+];
 
 function readJSONFile(filePath:string) : JsonObject | null {
     try {
@@ -23,7 +25,7 @@ export function mergeSwaggerFiles() {
         },
         servers: [
             {
-                url: `https://a6f3-223-178-212-60.ngrok-free.app/kokutalk`,
+                url: `https://e479-2401-4900-1c6f-5323-c516-1fb3-4bd8-82f0.ngrok-free.app/kokutalk`,
                 description: 'Ngrok server'
             },
             {

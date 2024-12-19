@@ -5,6 +5,7 @@ import User from "../schema/User";
 import { sendOtp } from "./sms";
 import Contact from "../schema/Contact";
 import { saveNotification } from "./notification";
+import { parsePayload } from "../helper/common";
 
 const OtpExpireTime = process.env.OTP_EXPIRATION_TIME_LIMIT || "20m";
 
@@ -34,9 +35,10 @@ export const  saveOtp = async (phoneNumber: string, countryCode: string) => {
     const expirationMinutes = parseExpireTime(OtpExpireTime);
     const otpValue = generateOtp();
     const expireAt = new Date(Date.now() + expirationMinutes * 60000);
+    const countryCodeSearch = parsePayload(JSON.stringify({ countryCode }), ["countryCode"])
     const registeredUser = await User.findOneAndUpdate({ 
+        ...countryCodeSearch,
         phoneNumber,
-        countryCode,
         isDeleted: false
     }, {
         $setOnInsert: {
@@ -56,7 +58,7 @@ export const  saveOtp = async (phoneNumber: string, countryCode: string) => {
     })
 
     const contactAdded = await Contact.findOneAndUpdate(
-        { phoneNumber, countryCode, userId: registeredUser?._id, 
+        { ...countryCodeSearch, phoneNumber, userId: registeredUser?._id, 
           createdBy: registeredUser?._id, isDeleted: false 
         }, 
         {
@@ -73,7 +75,7 @@ export const  saveOtp = async (phoneNumber: string, countryCode: string) => {
     }).lean().exec();
     await userService.updateUser(registeredUser._id,{otp : new mongoose.Types.ObjectId(newOtp._id), contact: registeredUser?.contact ? new mongoose.Types.ObjectId(registeredUser?.contact)  : new mongoose.Types.ObjectId(contactAdded?._id) }) ;
     console.log("OTP ========== ",newOtp.value);
-    await sendOtp(otpValue, countryCode + phoneNumber, registeredUser.name ? "login" : "registration")
+    // await sendOtp(otpValue, countryCode + phoneNumber, registeredUser.name ? "login" : "registration")
 }
 
 export const generateOtp = () => {

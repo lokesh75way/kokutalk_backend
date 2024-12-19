@@ -14,6 +14,7 @@ import adminRoutes from "./app/routes/admin";
 import callRateRoutes from "./app/routes/call-rate";
 import paymentRoutes from "./app/routes/payment";
 import fileRoutes from "./app/routes/fileUpload";
+import cardRoutes from "./app/routes/card";
 import { IUser } from "./app/schema/User";
 import { loadConfig } from "./app/helper/config";
 import swaggerUi from 'swagger-ui-express';
@@ -193,6 +194,7 @@ const initApp = async (): Promise<void> => {
   router.use("/call-rates", callRateRoutes);
   router.use("/payments", paymentRoutes);
   router.use("/file", fileRoutes);
+  router.use("/cards", cardRoutes);
 
   router.use("/documents", express.static(documentPath + "/documents/"));
   router.use('/docs', swaggerUi.serve, swaggerUi.setup(mergedSwagger));

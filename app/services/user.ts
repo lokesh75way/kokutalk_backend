@@ -2,7 +2,7 @@ import User, { IUser } from "../schema/User";
 import Otp from "../schema/Otp";
 import Contact, { IContact } from "../schema/Contact";
 import createHttpError from "http-errors";
-import { escapeRegex } from "../helper/common";
+import { escapeRegex, parsePayload } from "../helper/common";
 import { getNumber, addNumber } from "./call";
 import mongoose from "mongoose";
 
@@ -81,10 +81,11 @@ export const matchOtp = async(otp:Number)  => {
 
 export const addPhoneNumber = async (userId: string, data: Partial<NumberPayload>) => {
   try {
-      
-      const number = await Contact.findOneAndUpdate({ 
+    const countryCodeSearch = parsePayload(JSON.stringify({ countryCode: data.countryCode }), ["countryCode"])
+      const number = await Contact.findOneAndUpdate({
+          ...countryCodeSearch, 
           createdBy: userId, isDeleted: false,
-          phoneNumber: data?.phoneNumber, countryCode: data?.countryCode,
+          phoneNumber: data?.phoneNumber,
           userId
        }, { 
           $set: {
