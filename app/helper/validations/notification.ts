@@ -22,6 +22,11 @@ export const getNotification = checkExact([
       .isString()
       .bail()
       .withMessage('Message must be a string'),
+    query('title')
+      .optional()
+      .isString()
+      .bail()
+      .withMessage('Title must be a string'),
     query('pageIndex')
       .optional(),
     query('pageSize')
@@ -58,6 +63,11 @@ export const sendNotification = checkExact([
     .notEmpty()
     .bail()
     .withMessage("Message must have some value"),
+  body('title')
+    .optional()
+    .isString()
+    .bail()
+    .withMessage('Title must be a string'),
   body('entityType')
     .optional()
     .isString()

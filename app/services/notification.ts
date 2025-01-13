@@ -10,6 +10,7 @@ interface NotificationPayload {
     entityType?: string,
     entityTypeId?: string,
     message?: string,
+    title?: string,
     isSeen?: boolean,
     pageIndex?: string | number | null;
     pageSize?: string | number | null;
@@ -42,8 +43,8 @@ export const saveNotification = async (userId: string, data: Partial<INotificati
 
 export const updateNotification = async (userId: string, notificationId: string, data: Partial<INotification>) => {
     try {
-        const notification = await Notification.findOneAndUpdate({ _id: notificationId, userId, isDeleted: false }, 
-            { $set: { ...data, seenAt: new Date(Date.now()) } }, {
+        const notification = await Notification.findOneAndUpdate({ id: notificationId, userId, isDeleted: false }, 
+            { $set: { isSeen: true, seenAt: new Date(Date.now()) } }, {
             new: true,
         }).lean().exec();
 
@@ -56,7 +57,7 @@ export const updateNotification = async (userId: string, notificationId: string,
 
 export const getNotification = async (userId: string, payload: NotificationPayload) => {
     try {
-        const { pageIndex = "", pageSize = "", isSeen = false,  message = "", entityType = "", entityTypeId = "" } = payload;
+        const { pageIndex = "", pageSize = "", isSeen = false,  message = "", entityType = "", entityTypeId = "", title = "" } = payload;
 
         const pageFields = [{field: "pageIndex", defaultValue: 1}, {field: "pageSize", defaultValue: 10}]
         const { pageIndex: pageIndexToSearch, pageSize: pageSizeToSearch } = parsePagination(JSON.stringify(payload), pageFields)
@@ -68,11 +69,15 @@ export const getNotification = async (userId: string, payload: NotificationPaylo
         }
 
         if(mongoose.isObjectIdOrHexString(userId)) {
-            notificationSearch["userId"] = userId;
+            notificationSearch["userId"] = new mongoose.Types.ObjectId(userId);
         }
 
         if(message) {
             notificationSearch["message"] = new RegExp(escapeRegex(message), 'i')
+        }
+
+        if(title) {
+            notificationSearch["title"] = new RegExp(escapeRegex(title), 'i')
         }
 
         if(entityType) {
@@ -115,6 +120,7 @@ export const getNotification = async (userId: string, payload: NotificationPaylo
                 entityTypeId: { $first: "$entityTypeId" },
                 status: { $first: "$status" },
                 message: { $first: "$message" },
+                title: { $first: "$title" },
                 sentBy: { $first: "$sentBy" },
                 id: { $first: "$id" },
                 sentAt: { $first: "$sentAt" },
