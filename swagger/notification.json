@@ -43,6 +43,10 @@
                 "type": "string",
                 "example": "New notification"
             },
+            "title": {
+                "type": "string",
+                "example": "New notification"
+            },
             "isDeleted": {
               "type": "boolean",
               "example": false
@@ -99,6 +103,15 @@
                       "type": "string",
                       "example": "new notification"
                     }
+                },
+                {
+                  "name": "title",
+                  "in": "query",
+                  "description": "Title of the notification to search",
+                  "schema": {
+                    "type": "string",
+                    "example": "new notification"
+                  }
                 },
                 {
                     "name": "isSeen",
@@ -179,6 +192,8 @@
                                 "items": {
                                   "$ref": "#/components/schemas/NotificationResponseSchema" } 
                                 },
+                                "seenNotificationCount": { "type": "number", "example": 1 },
+                                "unseenNotificationCount": { "type": "number", "example": 1 },
                                 "totalCount": { "type": "number", "example": 1 },
                                 "pageCount": { "type": "number", "example": 1 },
                                 "pageIndex": { "type": "number", "example": 1 },
@@ -258,6 +273,21 @@
               }
             }
           ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "title": { "type": "string" }
+                  },
+                  "required": ["message"]
+                }
+              }
+            }
+          },
           "responses": {
             "200": {
               "description": "",
@@ -277,7 +307,7 @@
                       "data": {
                         "type": "object",
                         "properties": {
-                            "contact": { "$ref": "#/components/schemas/NotificationResponseSchema" }
+                            "notification": { "$ref": "#/components/schemas/NotificationResponseSchema" }
                         }
                       }
                     }
@@ -437,6 +467,7 @@
                   "type": "object",
                   "properties": {
                     "message": { "type": "string" },
+                    "title": { "type": "string" },
                     "entityType": { "type": "string" },
                     "customers": { "type": "array", "items": { "type": "string" }}
                   },

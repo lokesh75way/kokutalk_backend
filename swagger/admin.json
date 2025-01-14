@@ -351,9 +351,10 @@
                   "type": "object",
                   "properties": {
                     "email": { "type": "string" },
-                    "otp": { "type": "string" }
+                    "otp": { "type": "string" },
+                    "password": { "type": "string"} 
                   },
-                  "required": ["email", "otp"]
+                  "required": ["email", "otp", "password"]
                 }
               }
             }

@@ -70,6 +70,7 @@ export const addPayment = async (userId: string, data: PaymentAddPayload) => {
         })
         await addCredit(userId, { totalAmount: data.amount, remainingAmount: data.amount, currency: data.currency || CURRENCY.USD });
         await saveNotification(userId, { entityType: "payments", entityTypeId: payment?._id?.toString(),
+            title: "Recharge successful",
             message: `Payment successfully made for ${payment.amount} ${payment.currency}`
         })
         return { payment };
