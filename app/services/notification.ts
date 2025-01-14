@@ -26,7 +26,7 @@ export const saveNotification = async (userId: string, data: Partial<INotificati
              isDeleted: false, isSeen: false,            },
             { $setOnInsert: {
               ...data, userId, id: new mongoose.Types.ObjectId(),
-              sentAt: new Date(0)
+              sentAt: new Date()
             }},
             {
                 new: true,
@@ -65,7 +65,7 @@ export const getNotification = async (userId: string, payload: NotificationPaylo
 
         const notificationSearch:any = { 
             isDeleted: false, 
-            // isSeen
+            //isSeen
         }
 
         if(mongoose.isObjectIdOrHexString(userId)) {
@@ -92,12 +92,12 @@ export const getNotification = async (userId: string, payload: NotificationPaylo
 
         if(payload.from) {
             const startDateTime = moment(payload.from).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).format();
-            dateSearch["sentAt"] = { $gte: startDateTime };
+            dateSearch["createdAt"] = { $gte: startDateTime };
         }
       
         if(payload.to) {
             const endDateTime = moment(payload.to).set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).format();
-            dateSearch["sentAt"] = { ...dateSearch["sentAt"], $lte: endDateTime };
+            dateSearch["createdAt"] = { ...dateSearch["createdAt"], $lte: endDateTime };
         }
 
         const notificationCountDetail = await Notification.aggregate([
@@ -108,7 +108,16 @@ export const getNotification = async (userId: string, payload: NotificationPaylo
              { $count: "notifications" }
         ]).allowDiskUse(true);
 
+        const notificationSeenCountDetail = await Notification.aggregate([
+            { $match: {...notificationSearch, ...dateSearch, isSeen: true } },
+            { $group: { _id: "$id",
+                ids: { $push: "$_id" }
+             } },
+             { $count: "notifications" }
+        ]).allowDiskUse(true);
+
         const notificationCount = notificationCountDetail[0]?.notifications || 0;
+        const seenNotificationCount = notificationSeenCountDetail[0]?.notifications || 0;
 
         const userSearch:any = { isDeleted: false };
         const users = await User.find(userSearch).lean().exec();
@@ -123,7 +132,10 @@ export const getNotification = async (userId: string, payload: NotificationPaylo
                 title: { $first: "$title" },
                 sentBy: { $first: "$sentBy" },
                 id: { $first: "$id" },
+                isSeen: { $first: "$isSeen" },
+                seenAt: { $first: "$seenAt" },
                 sentAt: { $first: "$sentAt" },
+                createdAt: { $first: "$createdAt" },
                 isDeleted: { $first: "$isDeleted" },
                 userNotifications: { $push: { 
                     _id: "$_id", 
@@ -143,12 +155,12 @@ export const getNotification = async (userId: string, payload: NotificationPaylo
                     } 
                 } }
              } },
-             { $sort: { sentAt: -1 } },
+             { $sort: { createdAt: -1 } },
              { $skip: skipedNotification },
              { $limit: pageSizeToSearch }, 
         ])
 
-        return { notifications, totalCount: notificationCount, pageCount: Math.ceil(notificationCount/pageSizeToSearch),
+        return { notifications, seenNotificationCount, unseenNotificationCount: (notificationCount - seenNotificationCount), totalCount: notificationCount, pageCount: Math.ceil(notificationCount/pageSizeToSearch),
             pageIndex: pageIndexToSearch, pageSize: pageSizeToSearch, count: notifications.length
         };
     } catch(error) {

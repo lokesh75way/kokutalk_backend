@@ -192,6 +192,8 @@
                                 "items": {
                                   "$ref": "#/components/schemas/NotificationResponseSchema" } 
                                 },
+                                "seenNotificationCount": { "type": "number", "example": 1 },
+                                "unseenNotificationCount": { "type": "number", "example": 1 },
                                 "totalCount": { "type": "number", "example": 1 },
                                 "pageCount": { "type": "number", "example": 1 },
                                 "pageIndex": { "type": "number", "example": 1 },
