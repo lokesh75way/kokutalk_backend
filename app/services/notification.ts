@@ -23,7 +23,7 @@ export const saveNotification = async (userId: string, data: Partial<INotificati
     try {
         const notification = await Notification.findOneAndUpdate(
             { userId, entityType: data.entityType, entityTypeId: data.entityTypeId,
-             isDeleted: false, isSeen: false,            },
+             isDeleted: false },
             { $setOnInsert: {
               ...data, userId, id: new mongoose.Types.ObjectId(),
               sentAt: new Date()
