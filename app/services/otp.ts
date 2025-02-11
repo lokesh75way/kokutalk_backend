@@ -6,8 +6,13 @@ import { sendOtp } from "./sms";
 import Contact from "../schema/Contact";
 import { saveNotification } from "./notification";
 import { parsePayload } from "../helper/common";
+import { loadConfig } from "../helper/config";
+loadConfig()
 
 const OtpExpireTime = process.env.OTP_EXPIRATION_TIME_LIMIT || "20m";
+const testPhoneNumber = process.env.TEST_PHONE_NUMBER || "1234567890"
+const testCountryCode = process.env.TEST_COUNTRY_CODE || "+91"
+const testOtp = process.env.TEST_OTP|| "12345"
 
 /**
  * Function to get expiration in minutes for using token/otp
@@ -32,8 +37,9 @@ export const parseExpireTime = (expireTime: string): number => {
 
 
 export const  saveOtp = async (phoneNumber: string, countryCode: string) => {
-    const expirationMinutes = parseExpireTime(OtpExpireTime);
-    const otpValue = generateOtp();
+  
+   const expirationMinutes = parseExpireTime(OtpExpireTime);
+    const otpValue = (phoneNumber != testPhoneNumber && countryCode != testCountryCode) ? generateOtp() : Number(testOtp);
     const expireAt = new Date(Date.now() + expirationMinutes * 60000);
     const countryCodeSearch = parsePayload(JSON.stringify({ countryCode }), ["countryCode"])
     const registeredUser = await User.findOneAndUpdate({ 
@@ -75,7 +81,9 @@ export const  saveOtp = async (phoneNumber: string, countryCode: string) => {
     }).lean().exec();
     await userService.updateUser(registeredUser._id,{otp : new mongoose.Types.ObjectId(newOtp._id), contact: registeredUser?.contact ? new mongoose.Types.ObjectId(registeredUser?.contact)  : new mongoose.Types.ObjectId(contactAdded?._id) }) ;
     console.log("OTP ========== ",newOtp.value);
-    await sendOtp(otpValue, countryCode + phoneNumber, registeredUser.name ? "login" : "registration")
+    if(phoneNumber != testPhoneNumber && countryCode != testCountryCode) {
+      await sendOtp(otpValue, countryCode + phoneNumber, registeredUser.name ? "login" : "registration")
+    }
 }
 
 export const generateOtp = () => {
