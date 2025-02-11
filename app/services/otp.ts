@@ -11,7 +11,7 @@ loadConfig()
 
 const OtpExpireTime = process.env.OTP_EXPIRATION_TIME_LIMIT || "20m";
 const testPhoneNumber = process.env.TEST_PHONE_NUMBER || "1234567890"
-const testCountryCode = process.env.TEST_PHONE_NUMBER || "+91"
+const testCountryCode = process.env.TEST_COUNTRY_CODE || "+91"
 const testOtp = process.env.TEST_OTP|| "12345"
 
 /**
