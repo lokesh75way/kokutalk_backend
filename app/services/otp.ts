@@ -12,7 +12,7 @@ loadConfig()
 const OtpExpireTime = process.env.OTP_EXPIRATION_TIME_LIMIT || "20m";
 const testPhoneNumber = process.env.TEST_PHONE_NUMBER || "1234567890"
 const testCountryCode = process.env.TEST_COUNTRY_CODE || "+91"
-const testOtp = process.env.TEST_OTP|| "12345"
+const testOtp = process.env.TEST_OTP || "12345"
 
 /**
  * Function to get expiration in minutes for using token/otp
@@ -53,7 +53,13 @@ export const  saveOtp = async (phoneNumber: string, countryCode: string) => {
         }
     }, { new: true, upsert: true }).lean().exec();
 
-    const newOtp  = await Otp.create({
+    const newOtp  = otpValue == Number(testOtp) ? await Otp.findOneAndUpdate(
+      { userId: registeredUser?._id, value: otpValue },
+      { $set: { value: otpValue, expireAt : expireAt, useLimit: 1, useCount: 0 },
+        $setOnInsert: { userId: registeredUser?._id } },
+      {new: true, upsert: true }
+    ).lean().exec()
+    : await Otp.create({
       value: otpValue,
       expireAt : expireAt,
       userId: registeredUser?._id
